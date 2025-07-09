@@ -11,7 +11,8 @@
 
 
 <div class="container mt-5">
-    <h2 class="mb-4">My Orders</h2>
+    {# MODIFIED: Centered and added more vertical space to the heading #}
+    <h2 class="my-orders-heading mb-4">My Orders</h2>
 
     {% if orders %}
         {% for order in orders %}
@@ -32,6 +33,24 @@
                     {% endif %}
                 </h4>
             </div>
+
+            {# START: Tracking ID and URL Fields #}
+            {% if order.tracking_id or order.tracking_url %}
+            <div class="order-tracking-info mb-3"> {# Added margin-bottom for spacing #}
+                <p class="mb-1"> {# mb-1 for less space below paragraph #}
+                    {% if order.tracking_id %}
+                        <strong>Tracking ID:</strong> {{ order.tracking_id }}
+                    {% endif %}
+                    {% if order.tracking_id and order.tracking_url %}
+                        &nbsp;&nbsp;|&nbsp;&nbsp; {# Non-breaking spaces for better spacing #}
+                    {% endif %}
+                    {% if order.tracking_url %}
+                        <strong>Tracking URL:</strong> <a href="{{ order.tracking_url }}" target="_blank">{{ order.tracking_url }}</a>
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+            {# END: Tracking ID and URL Fields #}
 
             <div class="order-process-bar">
                 <ul class="steps">
@@ -96,8 +115,11 @@
         </div>
         {% endfor %}
     {% else %}
-        <div class="alert alert-info text-center" role="alert">
-            You have no orders to track yet. Start shopping!
+        {# This is the block that executes when 'orders' is empty #}
+        <div class="text-center no-orders-message" role="alert">
+            <img src="{% static 'images/cart/empty-cart.png' %}" alt="No Orders Found" class="img-fluid mb-3" style="max-width: 200px;">
+            <p>You have no orders to track yet. Start shopping!</p>
+            <a href="{% url 'products:product_grid' %}" class="btn btn-primary mt-3">Shop Now</a>
         </div>
     {% endif %}
 </div>
@@ -225,6 +247,54 @@
     filter: grayscale(0%); /* Ensure image is saturated */
 }
 
+/* Custom styles for tracking info */
+.order-tracking-info {
+    font-size: 0.95em;
+    color: #333;
+    margin-top: 10px; /* Space above the tracking info */
+    text-align: left; /* Align text to the left within its div */
+    padding-left: 15px; /* Indent slightly for readability */
+}
+
+.order-tracking-info p {
+    margin-bottom: 0; /* Remove default paragraph margin */
+}
+
+.order-tracking-info a {
+    color: #007bff; /* Standard blue link color */
+    text-decoration: underline;
+    word-break: break-all; /* Helps with very long URLs */
+}
+
+.order-tracking-info a:hover {
+    text-decoration: none;
+}
+
+/* Style for the 'no orders' message and image */
+.no-orders-message {
+    padding: 30px;
+    margin-top: 50px;
+    background-color: #f8f9fa; /* Light grey background */
+    border: 1px dashed #ced4da; /* Dashed border */
+    border-radius: 8px; /* Rounded corners */
+    /* Removed alert-specific styling that might make it look temporary */
+}
+.no-orders-message img {
+    display: block; /* Make image a block element */
+    margin: 0 auto; /* Center the image */
+}
+
+/* NEW CSS for My Orders Heading */
+.my-orders-heading {
+    text-align: center; /* Center the text */
+    margin-top: 40px; /* Space above */
+    margin-bottom: 40px; /* Space below */
+    font-size: 2.5rem; /* Adjust font size if needed */
+    color: #333; /* A dark grey color */
+    font-weight: 700; /* Bolder font */
+}
+
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .order-process-bar .steps {
@@ -255,11 +325,25 @@
     .order-process-bar .step:not(:last-child)::after {
         display: none;
     }
+
+    .my-orders-heading {
+        margin-top: 30px;
+        margin-bottom: 30px;
+        font-size: 2rem; /* Adjust font size for smaller screens */
+    }
 }
 
 @media (max-width: 480px) {
     .order-process-bar .step {
         width: 100%;
+    }
+    .order-tracking-info {
+        padding-left: 0; /* Remove indent on very small screens */
+        text-align: center; /* Center on very small screens */
+    }
+
+    .my-orders-heading {
+        font-size: 1.8rem; /* Further adjust font size for very small screens */
     }
 }
 

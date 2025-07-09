@@ -84,6 +84,26 @@
         font-weight: 600;
     }
 
+    /* Added style for the Tracking ID/URL box */
+    .tracking-box {
+        border: 1px solid #000000;
+        padding: 20px;
+        margin-top: 20px;
+        position: relative;
+    }
+
+    .tracking-box h3 {
+        position: absolute;
+        top: -15px;
+        left: 20px;
+        background-color: #ffffff;
+        padding: 0 10px;
+        margin: 0;
+        font-size: 1.1em;
+        font-weight: 600;
+    }
+
+
     .form-actions {
         width: 100%;
         text-align: center;
@@ -169,6 +189,21 @@
                     <div class="form-field"><label for="{{ form.billing_zipcode.id_for_label }}">ZIP Code</label>{{ form.billing_zipcode }}{{ form.billing_zipcode.errors }}</div>
                     <div class="form-field"><label for="{{ form.billing_country.id_for_label }}">Country</label>{{ form.billing_country }}{{ form.billing_country.errors }}</div>
                     <div class="form-field"><label for="{{ form.billing_phone.id_for_label }}">Phone</label>{{ form.billing_phone }}{{ form.billing_phone.errors }}</div>
+                </div>
+
+                {# New Tracking ID and Tracking URL fields #}
+                <div class="tracking-box">
+                    <h3>Tracking ID</h3> {# Changed from "Teacking ID" to "Tracking ID" #}
+                    <div class="form-field">
+                        <label for="{{ form.tracking_id.id_for_label }}">ID</label>
+                        {{ form.tracking_id }}
+                        {{ form.tracking_id.errors }}
+                    </div>
+                    <div class="form-field">
+                        <label for="{{ form.tracking_url.id_for_label }}">URL</label>
+                        {{ form.tracking_url }}
+                        {{ form.tracking_url.errors }}
+                    </div>
                 </div>
             </div>
         </div>

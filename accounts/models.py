@@ -78,7 +78,7 @@ If you didn’t request this, you can safely ignore this email.
 
 Cheers,  
 Team Stellars  
-www.stellarspvt.com
+www.stellarsonline.com
 """
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [self.user.email])
         return True

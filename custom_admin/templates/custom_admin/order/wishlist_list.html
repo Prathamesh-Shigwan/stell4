@@ -1,45 +1,47 @@
 {% extends "custom_admin/base_site.html" %}
-
 {% block content %}
-<div class="container mt-4" style="border: 2px solid black; padding: 20px; border-radius: 8px;"> {# Main container with solid black border #}
-    <h2 class="mb-4 text-center" style="font-weight: 600; color: #343a40;">Wishlist</h2> {# Consistent heading style #}
+<div class="container mt-4" style="border: 2px solid black; padding: 20px; border-radius: 8px;">
+    <h2 class="mb-4 text-center" style="font-weight: 600; color: #343a40;">Wishlist</h2>
 
-    <div class="d-flex justify-content-end mb-3"> {# Align "Add Wishlist" button to the right #}
-        <a href="{% url 'custom_admin:add_wishlist' %}" class="btn btn-success" style="background-color: #28a745; border-color: #28a745; font-weight: bold;">Add Wishlist</a>
-    </div>
-
-    <div class="card mb-4" style="border: 1px solid black;"> {# Card with solid black border #}
-        <div class="card-header bg-primary text-white" style="background-color: #007bff !important;"> {# Ensure Bootstrap primary color #}
+    <div class="card mb-4" style="border: 1px solid black;">
+        <div class="card-header bg-primary text-white" style="background-color: #007bff !important;">
             <strong>Filters</strong>
         </div>
         <div class="card-body">
             <form method="get">
-                <div class="row g-3 align-items-end"> {# g-3 for consistent spacing, align-items-end for vertical alignment #}
-                    <div class="col-12 col-md-4 col-lg-3"> {# Responsive column sizing #}
-                        <label for="search" class="form-label" style="font-weight: 500;">Search by Name</label> {# Added label and font-weight #}
-                        <div class="input-group"> {# Using input-group for consistent styling #}
-                            <input type="text" name="search" id="search" class="form-control" placeholder="Enter product name" value="{{ search_query }}"
-                                   style="border: 1px solid #ced4da;"> {# Solid border #}
-                            <span class="input-group-text" style="background-color: #e9ecef; border: 1px solid #ced4da;"> {# Styled input-group-text #}
-                                <i class="fas fa-search"></i> {# Assuming Font Awesome is loaded #}
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-4 col-lg-3">
+                        <label for="user" class="form-label" style="font-weight: 500;">Search by User</label>
+                        <div class="input-group">
+                            <input
+                                type="text"
+                                name="user"
+                                id="user"
+                                class="form-control"
+                                placeholder="Enter username"
+                                value="{{ request.GET.user }}"
+                                style="border: 1px solid #ced4da;"
+                            >
+                            <span class="input-group-text" style="background-color: #e9ecef; border: 1px solid #ced4da;">
+                                <i class="fas fa-search"></i>
                             </span>
                         </div>
                     </div>
-                    <div class="col-12 col-md-4 col-lg-3"> {# Responsive column sizing #}
-                        <label for="start_date" class="form-label" style="font-weight: 500;">Start Date</label> {# Added label and font-weight #}
-                        <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}"
-                               style="border: 1px solid #ced4da;"> {# Solid border #}
+                    <div class="col-12 col-md-4 col-lg-3">
+                        <label for="date" class="form-label" style="font-weight: 500;">Filter by Date Added</label>
+                        <input
+                            type="date"
+                            name="date"
+                            id="date"
+                            class="form-control"
+                            value="{{ request.GET.date }}"
+                            style="border: 1px solid #ced4da;"
+                        >
                     </div>
-                    <div class="col-12 col-md-4 col-lg-3"> {# Responsive column sizing #}
-                        <label for="end_date" class="form-label" style="font-weight: 500;">End Date</label> {# Added label and font-weight #}
-                        <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}"
-                               style="border: 1px solid #ced4da;"> {# Solid border #}
+                    <div class="col-12 col-md-4 col-lg-2 d-grid">
+                        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
                     </div>
-                    <div class="col-12 col-md-auto d-grid"> {# d-grid for full width button on small screens #}
-                        <button type="submit" class="btn btn-primary">Apply Filters</button>
-                    </div>
-                    {% comment %} Add clear filters button if any filters are active {% endcomment %}
-                    {% if search_query or start_date or end_date %}
+                    {% if request.GET.user or request.GET.date %}
                     <div class="col-12 col-md-auto d-grid">
                         <a href="{% url 'custom_admin:wishlist_list' %}" class="btn btn-warning">Clear Filters</a>
                     </div>
@@ -49,44 +51,92 @@
         </div>
     </div>
 
-    <div class="table-responsive"> {# Ensure table is responsive #}
-        <table class="table table-striped" style="border: 1px solid black;"> {# Applied table-striped and solid black border #}
-            <thead class="table-dark" style="background-color: #343a40; color: white;"> {# Consistent table header style #}
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{% url 'custom_admin:add_wishlist' %}" class="btn btn-success" style="background-color: #28a745; border-color: #28a745; font-weight: bold;">Add Wishlist Item</a>
+    </div>
+
+
+    <div class="table-responsive">
+        <table class="table table-striped" style="border: 1px solid black;">
+            <thead class="table-dark" style="background-color: #343a40; color: white;">
                 <tr>
-                    <th style="border: 1px solid black;">User</th> {# All th/td with solid black border #}
+                    <th style="border: 1px solid black;">
+                        <a href="?{% if request.GET.user %}user={{ request.GET.user }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}order_by=id{% if request.GET.order_by == 'id' and request.GET.order_direction != 'desc' %}&order_direction=desc{% endif %}"
+                           style="text-decoration: none; color: inherit;">
+                            ID
+                            {% if request.GET.order_by == 'id' %}
+                                {% if request.GET.order_direction == 'desc' %}&darr;{% else %}&uarr;{% endif %}
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th style="border: 1px solid black;">Image</th>
+                    <th style="border: 1px solid black;">
+                        <a href="?{% if request.GET.user %}user={{ request.GET.user }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}order_by=user__username{% if request.GET.order_by == 'user__username' and request.GET.order_direction != 'desc' %}&order_direction=desc{% endif %}"
+                           style="text-decoration: none; color: inherit;">
+                            User
+                            {% if request.GET.order_by == 'user__username' %}
+                                {% if request.GET.order_direction == 'desc' %}&darr;{% else %}&uarr;{% endif %}
+                            {% endif %}
+                        </a>
+                    </th>
                     <th style="border: 1px solid black;">Product</th>
-                    <th style="border: 1px solid black;">Product Image</th>
-                    <th style="border: 1px solid black;">Date Added</th>
+                    <th style="border: 1px solid black;">Variant</th>
+                    <th style="border: 1px solid black;">
+                        <a href="?{% if request.GET.user %}user={{ request.GET.user }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}order_by=date{% if request.GET.order_by == 'date' and request.GET.order_direction != 'desc' %}&order_direction=desc{% endif %}"
+                           style="text-decoration: none; color: inherit;">
+                            Date Added
+                            {% if request.GET.order_by == 'date' %}
+                                {% if request.GET.order_direction == 'desc' %}&darr;{% else %}&uarr;{% endif %}
+                            {% endif %}
+                        </a>
+                    </th>
                     <th style="border: 1px solid black;">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for wishlist in wishlists %}
+                {% for wishlist_item in wishlists %}
                 <tr>
-                    <td style="border: 1px solid black;">{{ wishlist.user.username|default:"No User" }}</td>
-                    <td style="border: 1px solid black;">{{ wishlist.product.name|default:"No Product" }}</td>
+                    {% with variant_to_display=wishlist_item.product_variant|default:wishlist_item.product.variants.first %}
+                    <td style="border: 1px solid black;">{{ wishlist_item.id }}</td>
                     <td style="border: 1px solid black;">
-                        {% if wishlist.product.image %}
-                            <img src="{{ wishlist.product.image.url }}" alt="{{ wishlist.product.name }}" width="50" height="50" class="img-thumbnail" style="border-radius: 4px; object-fit: cover;"> {# Added img-thumbnail, border-radius, object-fit #}
+                        {% if variant_to_display and variant_to_display.image %}
+                            <img src="{{ variant_to_display.image.url }}" alt="{{ variant_to_display }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
                         {% else %}
                             <span class="text-muted">No Image</span>
                         {% endif %}
                     </td>
-                    <td style="border: 1px solid black;">{{ wishlist.date|date:"Y-m-d H:i" }}</td> {# Formatted date #}
+                    <td style="border: 1px solid black;">{{ wishlist_item.user.username }}</td>
+                    <td style="border: 1px solid black;">{{ wishlist_item.product.name }}</td>
                     <td style="border: 1px solid black;">
-                        <div class="d-flex flex-wrap gap-1"> {# Flexbox for action buttons #}
-                            <a href="{% url 'custom_admin:edit_wishlist' wishlist.pk %}" class="btn btn-sm btn-primary" style="background-color: #007bff; border-color: #007bff; font-weight: bold;">Edit</a>
-                            <a href="{% url 'custom_admin:delete_wishlist' wishlist.pk %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this wishlist?');" style="background-color: #dc3545; border-color: #dc3545; font-weight: bold;">Delete</a>
-                        </div>
+                        {% if variant_to_display %}
+                            {{ variant_to_display }}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
                     </td>
+                    <td style="border: 1px solid black;">{{ wishlist_item.date|date:"Y-m-d H:i" }}</td>
+                    <td style="border: 1px solid black;">
+    <div class="d-flex flex-wrap gap-1">
+        <a href="{% url 'custom_admin:edit_wishlist' wishlist_item.pk %}" class="btn btn-sm btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'custom_admin:delete_wishlist' wishlist_item.pk %}" class="btn btn-sm btn-danger" onclick="...">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+        <a href="{% url 'custom_admin:send_reminder_email' user_id=wishlist_item.user.id reminder_type='wishlist' %}" class="btn btn-sm btn-success">
+            <i class="fas fa-envelope"></i> Send Reminder
+        </a>
+    </div>
+</td>
+                    {% endwith %}
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center" style="border: 1px solid black;">No items in the wishlist.</td>
+                    <td colspan="7" class="text-center" style="border: 1px solid black;">No wishlist items found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-    </div> {# Close table-responsive div #}
+    </div>
 </div>
 {% endblock %}

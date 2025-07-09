@@ -13,7 +13,6 @@
 
 
 
-        <!-- End Offset Wrapper -->
         <div class="ht__bradcaump__area bradcaump--2" style="background-image: url('{% static 'images/bagse.png' %}'); background-repeat: no-repeat; background-size: cover; background-position: center center;">
             <div class="google__map">
                 <div class="map-contacts">
@@ -37,25 +36,20 @@
             </div>
         </div>
 
-        <!-- End Bradcaump area -->
-        <!-- Start Product Grid -->
         <section class="htc__product__grid bg__white ptb--70">
             <div class="container">
                 <div class="row">
                     <div class="col-md-3 col-sm-12 col-xs-12">
                         <div class="htc__product__leftsidebar">
                             <h2 class="title__line--3">shop by</h2>
-                            <!-- Start Category Area -->
-                                <div class="htc__category">
+                            <div class="htc__category">
                                     <h4 class="title__line--4">By Categories</h4>
                                     <ul class="ht__cat__list">
-                                        <!-- All Products -->
                                         <li>
                                             <a href="{% url 'products:product_grid' %}"><strong>All</strong></a>
                                             <span class="category-count">{{ products.paginator.count }}</span>
                                         </li>
 
-                                        <!-- Main Categories and Subcategories -->
                                         {% for main_category in main_categories %}
                                             <li>
                                                 <a href="{% url 'products:product_grid_by_main_category' main_category.cid %}">
@@ -87,9 +81,7 @@
                                     </style>
                                 </div>
 
-                            <!-- End Category Area -->
-                            <!-- Start Prize Range -->
-                                <div class="htc-grid-range">
+                            <div class="htc-grid-range">
                                     <h4 class="title__line--4">by price</h4>
                                     <div class="content-shopby">
                                         <div class="price_filter s-filter clear">
@@ -134,9 +126,7 @@
                                 });
                                 </script>
 
-                            <!-- End Prize Range -->
-                            <!-- Start Pro Color -->
-<div style="margin-top: 20px;">
+                            <div style="margin-top: 20px;">
     <h4 style="font-weight: 600; margin-bottom: 20px; font-size: 18px;"><u>Filter by Color</h4>
 
     <ul style="display: grid;
@@ -189,7 +179,6 @@
             <option value="high_to_low" {% if request.GET.sort == 'high_to_low' %}selected{% endif %}>Price: High to Low</option>
         </select>
 
-        <!-- ✅ Preserve filters -->
         {% if request.GET.color %}
             <input type="hidden" name="color" value="{{ request.GET.color }}">
         {% endif %}
@@ -208,19 +197,15 @@
                                 <div class="ht__pro__qun">
                                     <span>Showing 1-12 of {{ products.paginator.count }} products</span>
                                 </div>
-                                <!-- Start List And Grid View -->
                                 <ul class="view__mode" role="tablist">
                                     <li role="presentation" class="grid-view active"><a href="#grid-view" role="tab" data-toggle="tab"><i class="zmdi zmdi-grid"></i></a></li>
                                     <li role="presentation" class="list-view"><a href="#list-view" role="tab" data-toggle="tab"><i class="zmdi zmdi-view-list"></i></a></li>
                                 </ul>
-                                <!-- End List And Grid View -->
-                            </div>
-                            <!-- Start Product View -->
+                                </div>
                             <div class="row">
                                 <div class="shop__grid__view__wrap">
                                     <div role="tabpanel" id="grid-view" class="single-grid-view tab-pane fade in active clearfix">
-                                        <!-- Start Single Product -->
-{% for p in products %}
+                                        {% for p in products %}
     {% with v=p.variants.first %}
         {% if v %}
             {% with s=v.size_options.first %}
@@ -241,7 +226,9 @@
                             <div class="product__hover__info">
                                 <ul class="product__action">
                                     <li>
-                                        <a href="#" class="add-to-wishlist" data-product-id="{{ p.id }}" data-url="{% url 'products:add_to_wishlist' %}">
+                                        <a href="#" class="add-to-wishlist"
+                                           data-product-id="{{ p.id }}"
+                                           data-variant-id="{{ v.id }}"  data-url="{% url 'products:add_to_wishlist' %}">
                                             <i class="icon-heart icons"></i>
                                         </a>
                                     </li>
@@ -295,10 +282,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- End Product View -->
-                        </div>
-                        <!-- Start Pagenation -->
-                    <div class="htc__pagenation">
+                            </div>
+                        <div class="htc__pagenation">
                         <ul class="pagination">
                             {% if products.has_previous %}
                                 <li><a href="?page=1">&laquo; First</a></li>
@@ -319,34 +304,11 @@
                             {% endif %}
                         </ul>
                     </div>
-                        <!-- End Pagenation -->
-                    </div>
+                        </div>
                 </div>
             </div>
         </section>
-        <!-- End Product Grid -->
-        <!-- Start Brand Area -->
-        <div class="htc__brand__area pb--70 bg__white">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="ht__brand__inner">
-                            <ul class="brand__list owl-carousel owl-theme clearfix">
-                                <li><a href="#"><img src="{% static 'images/brand/1.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/2.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/3.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/4.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/5.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/1.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/2.png' %}" alt="brand images"></a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- End Brand Area -->
-        <!-- Start Banner Area -->
+
         <div class="htc__banner__area">
             <ul class="banner__list owl-carousel owl-theme clearfix">
                 <li><a href="{% url 'products:product_details' %}"><img src="{% static 'images/banner/bn-3/1.jpg' %}" alt="banner images"></a></li>
@@ -359,10 +321,7 @@
                 <li><a href="{% url 'products:product_details' %}"><img src="{% static 'images/banner/bn-3/2.jpg' %}" alt="banner images"></a></li>
             </ul>
         </div>
-        <!-- End Banner Area -->
-        <!-- End Banner Area -->
-
-<script>
+        <script>
     document.addEventListener('DOMContentLoaded', function() {
         // ... (Your existing wishlist and add-to-cart scripts should be here) ...
 
@@ -492,15 +451,18 @@ function getCookie(name) {
 $(document).ready(function () {
     $(document).on('click', '.add-to-wishlist', function (e) {
         e.preventDefault();
-        const url = $(this).data('url');
-        const productId = $(this).data('product-id');
+        const button = $(this);
+        const url = button.data('url');
+        const productId = button.data('product-id');
+        const variantId = button.data('variant-id'); // ✅ Get the variant ID
 
         $.ajax({
             url: url,
             type: 'POST',
             data: {
-                id: productId,
-                csrfmiddlewaretoken: getCookie('csrftoken')
+                'id': productId,
+                'variant_id': variantId, // ✅ Send the variant ID
+                'csrfmiddlewaretoken': getCookie('csrftoken')
             },
             success: function (data) {
                 alert(data.message);
@@ -510,25 +472,7 @@ $(document).ready(function () {
             }
         });
     });
-});
-</script>
-<script>
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
 
-$(document).ready(function () {
     $(document).on('click', '.add-to-cart-btn', function (e) {
         e.preventDefault();
 
@@ -553,28 +497,65 @@ $(document).ready(function () {
             },
             success: function (response) {
                 if (response.success) {
-                    // ✅ Update cart count badge
-                    const cartBadge = document.querySelector('.cart-count-badge');
-                    if (cartBadge) {
+                    const cartMenuLink = document.querySelector('.htc__shopping__cart .cart__menu');
+                    let cartBadge = Array.from(cartMenuLink.children).find(child =>
+                        child.tagName === 'SPAN' && !child.classList.contains('icon') && child.style.position === 'absolute'
+                    );
+
+                    if (response.total_items > 0) {
+                        if (!cartBadge) {
+                            cartBadge = document.createElement('span');
+                            cartMenuLink.appendChild(cartBadge);
+
+                            cartBadge.style.position = 'absolute';
+                            cartBadge.style.top = '-8px';
+                            cartBadge.style.right = '-10px';
+                            cartBadge.style.background = '#2bdac7';
+                            cartBadge.style.color = 'white';
+                            cartBadge.style.fontSize = '12px';
+                            cartBadge.style.fontWeight = 'bold';
+                            cartBadge.style.padding = '2px 6px';
+                            cartBadge.style.borderRadius = '50%';
+                            cartBadge.style.lineHeight = '1';
+                            cartBadge.style.display = 'flex';
+                            cartBadge.style.alignItems = 'center';
+                            cartBadge.style.justifyContent = 'center';
+                            cartBadge.style.minWidth = '20px';
+                            cartBadge.style.height = '20px';
+                        }
                         cartBadge.textContent = response.total_items;
+                        cartBadge.style.display = 'flex';
                     } else {
-                        const icon = document.querySelector('.icon-handbag');
-                        if (icon) {
-                            const badge = document.createElement('span');
-                            badge.className = 'cart-count-badge';
-                            badge.textContent = response.total_items;
-                            icon.parentElement.appendChild(badge);
+                        if (cartBadge) {
+                            cartBadge.textContent = '';
+                            cartBadge.style.display = 'none';
                         }
                     }
-
                     alert('Added to cart. Total items: ' + response.total_items);
                 } else {
-                    alert('Failed: ' + response.error);
+                    // This is for the `success: function(response)` block when `response.success` is false
+                    let errorMessage = response.error || "Failed to add to cart.";
+                    if (response.error === "Insufficient stock") {
+                        errorMessage = "Out of stock";
+                    }
+                    alert(errorMessage);
                 }
             },
             error: function (xhr, status, error) {
                 console.error("Add to cart error:", xhr.responseText);
-                alert('Error adding to cart.');
+                let errorMessage = "Error adding to cart. Please try again."; // Default error message
+
+                try {
+                    const responseJson = JSON.parse(xhr.responseText);
+                    if (responseJson && responseJson.error === "Insufficient stock") {
+                        errorMessage = "Out of stock";
+                    } else if (responseJson && responseJson.error) {
+                        errorMessage = responseJson.error; // Show other specific errors if present
+                    }
+                } catch (e) {
+                    console.error("Could not parse error response for stock:", e);
+                }
+                alert(errorMessage);
             }
         });
     });

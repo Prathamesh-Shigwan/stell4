@@ -20,7 +20,9 @@ urlpatterns = [
     path('export-orders-excel/', views.export_orders_excel, name='export_orders_excel'),
     path('export_orders_summary_excel/', views.export_orders_summary_excel, name='export_orders_summary_excel'),
 
-    path('login/', LoginView.as_view(template_name='admin/login.html'), name='admin_login'),
+    #path('login/', LoginView.as_view(template_name='admin/login1.html'), name='admin_login'),
+    path('login/', views.admin_login_view, name='admin_login'),
+
     path('logout/', LogoutView.as_view(), name='admin_logout'),
 
     path('media-library/', views.media_library_view, name='media_library'),
@@ -117,5 +119,13 @@ urlpatterns = [
     path('site-content/', views.site_content_list, name='site_content_list'),
     path('site-content/manage/', views.site_content_create_or_update, name='site_content_manage'),
     path('site-content/delete/', views.site_content_delete, name='site_content_delete'),
-    ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('send-reminder/<int:user_id>/<str:reminder_type>/', views.send_reminder_email, name='send_reminder_email'),
+    path('send-reengagement-email/<int:user_id>/', views.send_reengagement_email, name='send_reengagement_email'),
+
+    path('brands/', views.brand_list_view, name='brand_list'),
+    path('brands/add/', views.add_brand_view, name='add_brand'),
+    path('brands/edit/<int:pk>/', views.edit_brand_view, name='edit_brand'),
+    path('brands/delete/<int:pk>/', views.delete_brand_view, name='delete_brand'),
+
+              ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

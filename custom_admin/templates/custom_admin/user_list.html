@@ -3,9 +3,65 @@
 
 {% block content %}
 <div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="fw-bold">User Role Management</h2>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold m-0">User Role Management</h2>
   </div>
+
+<div class="card mb-4">
+  <div class="card-header">
+    <strong><i class="fas fa-filter"></i> Filters</strong>
+  </div>
+  <div class="card-body">
+    <form method="get" class="row g-3 align-items-center">
+      <div class="col-md-4">
+        <label for="searchQuery" class="form-label">Search by Username or Email</label>
+        <input
+          type="text"
+          name="q"
+          id="searchQuery"
+          class="form-control"
+          placeholder="Enter username or email..."
+          value="{{ current_search }}"
+          style="border: 1px solid black;"
+        >
+      </div>
+      <div class="col-md-3">
+        <label for="roleFilter" class="form-label">Filter by Role</label>
+        <select
+          name="role"
+          id="roleFilter"
+          class="form-select"
+          style="border: 1px solid black;"
+        >
+          <option value="">All Roles</option>
+          {% for value, display in role_choices %}
+            <option value="{{ value }}" {% if value == current_role %}selected{% endif %}>{{ display }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex align-self-end">
+        <div class="form-check mt-3">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            name="include_users"
+            id="includeUsersCheck"
+            {% if include_users_checked %}checked{% endif %}
+            style="border: 1px solid black;"
+          >
+          <label class="form-check-label" for="includeUsersCheck">
+            Include 'User' Role
+          </label>
+        </div>
+      </div>
+      <div class="col-md-3 d-flex align-self-end gap-2">
+        <button type="submit" class="btn btn-primary w-100">Apply</button>
+        <a href="{% url 'custom_admin:user_list' %}" class="btn btn-secondary w-100">Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
 
   <div class="table-responsive">
     <table class="table table-hover table-bordered align-middle">
@@ -22,7 +78,28 @@
         <tr>
           <td>{{ user.username }}</td>
           <td>{{ user.email }}</td>
-          <td><span class="badge bg-primary text-capitalize">{{ user.get_role_display }}</span></td>
+          <td>
+            {% comment %} This block checks the user's role and assigns a color. {% endcomment %}
+            {% if user.role == 'admin' %}
+                <span class="badge rounded-pill bg-danger">Admin</span>
+
+            {% elif user.role == 'finance_manager' %}
+                <span class="badge rounded-pill bg-warning text-dark">Finance Manager</span>
+
+            {% elif user.role == 'inventory_manager' %}
+                <span class="badge rounded-pill bg-dark">Inventory Manager</span>
+
+            {% elif user.role == 'content_manager' %}
+                <span class="badge rounded-pill bg-primary">Content Manager</span>
+
+            {% elif user.role == 'staff' %}
+                <span class="badge rounded-pill bg-info text-dark">Staff</span>
+
+            {% else %}  {# This is the default for the 'user' role #}
+                <span class="badge rounded-pill bg-success">User</span>
+
+            {% endif %}
+          </td>
           <td>
             <a href="{% url 'custom_admin:edit_user_role' user.id %}" class="btn btn-sm btn-outline-primary">
               Edit Role
@@ -31,7 +108,13 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="4" class="text-center text-muted">No users found.</td>
+          <td colspan="4" class="text-center text-muted p-4">
+            {% if current_search or current_role %}
+              No users found matching your filters.
+            {% else %}
+              No users found.
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
       </tbody>

@@ -1,12 +1,20 @@
 {% extends "custom_admin/base_site.html" %}
 
 {% block content %}
+
+<style>
+    .table-bordered th,
+    .table-bordered td {
+        border: 1px solid black !important;
+    }
+</style>
+
 <div class="container mt-4">
     <h2 class="mb-4">Addresses for {{ user.username }}</h2>
 
     <h3>Shipping Addresses</h3>
     {% if shipping_addresses %}
-        <table class="table table-bordered">
+        <table class="table table-bordered" style="border: 1px solid black;">
             <thead>
                 <tr>
                     <th>Full Name</th>
@@ -42,7 +50,7 @@
 
     <h3 class="mt-5">Billing Addresses</h3>
     {% if billing_addresses %}
-        <table class="table table-bordered">
+        <table class="table table-bordered" style="border: 1px solid black;">
             <thead>
                 <tr>
                     <th>Full Name</th>

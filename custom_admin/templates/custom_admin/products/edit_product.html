@@ -2,30 +2,38 @@
 
 {% block content %}
 <style>
-    /* Your existing CSS (cleaned up and updated for new layout) */
-
-    .custom-file-upload { /* This class is no longer used in the HTML but kept in CSS for reference */
-        display: inline-block;
-        padding: 8px 16px;
-        cursor: pointer;
-        background-color: #e0e0e0;
-        color: #333;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-weight: 500;
-        margin-bottom: 10px;
+    /* Basic styling for required asterisk */
+    .form-group label.required::after {
+        content: " *";
+        color: red;
+        margin-left: 2px;
     }
 
-    input[type="file"] { /* This rule is no longer directly applied as file inputs are removed */
-        display: none;
+    /* Styling for invalid fields */
+    .form-control.is-invalid {
+        border-color: #dc3545 !important; /* Red border */
     }
 
+    /* Message for validation errors */
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.875em;
+        margin-top: 0.25rem;
+    }
+
+    /* Ensure .d-block class works for invalid-feedback */
+    .invalid-feedback.d-block {
+        display: block !important;
+    }
+
+
+    /* Styling for the custom styled inputs */
     .styled-input input,
     .styled-input textarea,
     .styled-input select {
         width: 100%;
         padding: 8px 12px;
-        border: 1px solid black; /* Solid black border for input fields */
+        border: 1px solid black; /* Solid black border */
         border-radius: 6px;
         font-size: 14px;
     }
@@ -42,9 +50,10 @@
     .styled-input {
         margin-bottom: 20px;
         padding: 10px; /* Add some padding inside the border */
-        border: 1px solid #ccc; /* Light grey border for field containers */
+        border: 1px solid #ccc; /* Light grey border for fields */
         border-radius: 4px; /* Slightly less rounded for a more structured look */
     }
+
 
     /* Custom styles to match the image layout */
     .form-section-title {
@@ -61,43 +70,40 @@
         border-radius: 5px;
         font-weight: 500;
         padding: 8px 15px;
-        cursor: pointer;
-        /* Default styling for the buttons (not active) */
-        background-color: #f0f0f0;
-        color: #555;
-        border: 1px solid #ccc;
+        color: #333; /* Default text color for buttons */
+        background-color: #f0f0f0; /* Default background for unselected */
+        border: 1px solid #ddd; /* Default border for unselected */
     }
 
-    .product-status-buttons .btn.active-status {
+    .product-status-buttons .btn.active { /* This class is added by JS when checkbox is checked */
         background-color: #28a745; /* Green for Active */
         color: white;
         border-color: #28a745;
     }
 
-    .product-status-buttons .btn.in-stock-status {
+    /* Specific styling for the 'active' state of each button type */
+    .product-status-buttons .btn.active-status.active {
+        background-color: #28a745; /* Green for Active */
+        color: white;
+        border-color: #28a745;
+    }
+
+    .product-status-buttons .btn.in-stock-status.active {
         background-color: #007bff; /* Blue for In Stock */
         color: white;
         border-color: #007bff;
     }
 
-    .product-status-buttons .btn.feature-status {
+    .product-status-buttons .btn.feature-status.active {
         background-color: #ffc107; /* Yellow for Feature */
-        color: #333;
+        color: #333; /* Keep dark text for yellow background */
         border-color: #ffc107;
     }
+
 
     .product-status-buttons .btn input[type="checkbox"] {
         display: none; /* Hide the actual checkbox */
     }
-
-    /* Styles for when a button (checkbox) is checked */
-    .product-status-buttons .btn.active-status.is-checked,
-    .product-status-buttons .btn.in-stock-status.is-checked,
-    .product-status-buttons .btn.feature-status.is-checked {
-        border: 2px solid #333; /* Highlight active button with a darker border */
-        box-shadow: 0 0 5px rgba(0,0,0,0.2);
-    }
-
 
     /* Added border to the main container to act as the "form border" */
     .form-container-with-border {
@@ -106,7 +112,7 @@
         background-color: #f8f9fa;
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        max-width: 900px; /* Increased max-width for two columns */
+        max-width: 900px;
         margin: 0 auto;
     }
 
@@ -114,85 +120,91 @@
     .column-section {
         border: 1px solid #ddd; /* Light grey border for the column sections */
         padding: 15px;
-        margin-bottom: 20px; /* Space between sections if stacked */
+        margin-bottom: 20px;
         border-radius: 5px;
         background-color: #fff; /* White background for sections */
         height: 100%; /* Make columns fill height */
-        display: flex; /* Use flex to make content fill vertically */
+        display: flex;
         flex-direction: column;
     }
 
-    /* Adjust column padding to make space for inner column borders */
+    /* Ensure columns have borders */
     .row > div[class*="col-"] {
-        padding: 0 10px;
+        padding: 0 10px; /* Adjust padding to make space for inner column borders */
     }
 
     .row {
         margin: 0 -10px; /* Compensate for column padding */
     }
-
-    /* Specific adjustment for buttons */
-    .d-flex.justify-content-between {
-        margin-top: 20px; /* Add some space above the buttons */
-    }
 </style>
 
 <div class="container mt-4">
-    <h2 class="mb-4" style="color: #343a40; text-align: center; font-weight: 600;">Edit Product</h2>
-    <form method="POST" enctype="multipart/form-data" class="form-container-with-border">
+    <h2 class="mb-4" style="color: #343a40; text-align: center; font-weight: 600;">Product/Edit Product</h2>
+    <form method="POST" enctype="multipart/form-data" class="form-container-with-border" id="productForm">
         {% csrf_token %}
 
         <div class="row">
             <div class="col-md-6">
                 <div class="column-section">
-                    <div class="form-section-title">Product Details</div>
+                    <div class="form-section-title">Add Product</div>
 
-                    <div class="styled-input">
+                    {# pid and sku are often auto-generated, so marking them optional for user input. #}
+                    {# If you want them user-editable and required, add 'required' class to label and to JS validation array #}
+                    <div class="styled-input form-group">
                         <label class="form-label">Product ID</label>
                         {{ form.pid }}
+                        {% if form.pid.errors %}<div class="invalid-feedback d-block">{{ form.pid.errors }}</div>{% endif %}
                     </div>
-                    <div class="styled-input">
-                        <label class="form-label">Name</label>
+                    <div class="styled-input form-group">
+                        <label class="form-label required">Name</label> {# Assuming 'name' is required #}
                         {{ form.name }}
+                        {% if form.name.errors %}<div class="invalid-feedback d-block">{{ form.name.errors }}</div>{% endif %}
                     </div>
-                    <div class="styled-input">
-                        <label class="form-label">Title</label>
+                    <div class="styled-input form-group">
+                        <label class="form-label required">Product Title</label> {# Assuming 'title' is required #}
                         {{ form.title }}
+                        {% if form.title.errors %}<div class="invalid-feedback d-block">{{ form.title.errors }}</div>{% endif %}
                     </div>
-                    <div class="styled-input">
-                        <label class="form-label">Description</label>
+                    <div class="styled-input form-group">
+                        <label class="form-label">Description</label> {# Optional #}
                         {{ form.description }}
+                        {% if form.description.errors %}<div class="invalid-feedback d-block">{{ form.description.errors }}</div>{% endif %}
                     </div>
-                    <div class="styled-input">
-                        <label class="form-label">Specification</label>
+                    <div class="styled-input form-group">
+                        <label class="form-label">Specification</label> {# Optional #}
                         {{ form.specification }}
+                        {% if form.specification.errors %}<div class="invalid-feedback d-block">{{ form.specification.errors }}</div>{% endif %}
                     </div>
                 </div>
             </div>
 
             <div class="col-md-6">
                 <div class="column-section">
-                    <div class="form-section-title">Product Attributes</div>
+                    <div class="form-section-title">Product Details</div>
 
-                    <div class="styled-input">
-                        <label class="form-label">User</label>
+                    <div class="styled-input form-group">
+                        <label class="form-label required">User</label> {# Assuming 'user' is required #}
                         {{ form.user }}
+                        {% if form.user.errors %}<div class="invalid-feedback d-block">{{ form.user.errors }}</div>{% endif %}
                     </div>
-                    <div class="styled-input">
-                        <label class="form-label">Main Category</label>
+                    <div class="styled-input form-group">
+                        <label class="form-label required">Main Category</label> {# Assuming 'main_category' is required #}
                         {{ form.main_category }}
+                        {% if form.main_category.errors %}<div class="invalid-feedback d-block">{{ form.main_category.errors }}</div>{% endif %}
                     </div>
-                    <div class="styled-input">
-                        <label class="form-label">Subcategory</label>
+                    <div class="styled-input form-group">
+                        <label class="form-label required">Sub Category</label> {# Assuming 'sub_category' is required #}
                         {{ form.sub_category }}
+                        {% if form.sub_category.errors %}<div class="invalid-feedback d-block">{{ form.sub_category.errors }}</div>{% endif %}
                     </div>
 
-                    <div class="styled-input">
-                        <label class="form-label">Product Status</label>
+                    <div class="styled-input form-group">
+                        <label class="form-label required">Product Status</label> {# Assuming 'product_status' is required #}
                         {{ form.product_status }}
+                        {% if form.product_status.errors %}<div class="invalid-feedback d-block">{{ form.product_status.errors }}</div>{% endif %}
                     </div>
 
-                    <div class="product-status-buttons mb-3 d-flex flex-wrap">
+                    <div class="product-status-buttons mb-3 form-group">
                         <label class="btn active-status">
                             {{ form.status }} Active
                         </label>
@@ -202,38 +214,130 @@
                         <label class="btn feature-status">
                             {{ form.featured }} Feature
                         </label>
+                        {# Checkbox errors are usually not displayed per-checkbox, but for the whole group #}
+                        {% if form.status.errors or form.in_stock.errors or form.featured.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.status.errors %}{{ error }}{% endfor %}
+                                {% for error in form.in_stock.errors %}{{ error }}{% endfor %}
+                                {% for error in form.featured.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
 
-                    <div class="styled-input">
-                        <label class="form-label">SKU</label>
+                    <div class="styled-input form-group">
+                        <label class="form-label">SKU ID</label> {# Likely auto-generated, not user-input required #}
                         {{ form.sku }}
+                        {% if form.sku.errors %}<div class="invalid-feedback d-block">{{ form.sku.errors }}</div>{% endif %}
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="d-flex justify-content-center mt-4">
-            <button type="submit" class="btn btn-success me-3" style="min-width: 120px;">Update Product</button>
+            <button type="submit" class="btn btn-success me-3" style="min-width: 120px;">Submit</button>
             <a href="{% url 'custom_admin:product_list' %}" class="btn btn-danger" style="min-width: 120px;">Cancel</a>
         </div>
     </form>
 </div>
 
 <script>
-    // Handle button-like styling for checkboxes
-    document.querySelectorAll('.product-status-buttons input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
-            const label = checkbox.closest('label');
-            if (checkbox.checked) {
-                label.classList.add('is-checked'); // Add a class when checked
-            } else {
-                label.classList.remove('is-checked'); // Remove when unchecked
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('productForm');
+
+        // Function to mark a field as invalid
+        function markInvalid(field) {
+            field.classList.add('is-invalid');
+            // Check if there's an existing error message div, if not, create one
+            let errorDiv = field.closest('.form-group').querySelector('.invalid-feedback');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.classList.add('invalid-feedback');
+                field.after(errorDiv); // Append after the field
+            }
+            errorDiv.classList.add('d-block');
+            if (!errorDiv.textContent) { // Only set generic message if no specific error from Django
+                errorDiv.textContent = 'This field is required.';
+            }
+        }
+
+        // Function to mark a field as valid
+        function markValid(field) {
+            field.classList.remove('is-invalid');
+            const errorDiv = field.closest('.form-group').querySelector('.invalid-feedback');
+            if (errorDiv) {
+                errorDiv.classList.remove('d-block');
+                // Don't clear content, Django's server-side errors might be there
+            }
+        }
+
+        // Client-side validation before form submission
+        form.addEventListener('submit', function(event) {
+            let isValid = true;
+
+            // Define required fields for client-side validation
+            // !!! IMPORTANT !!! Adjust this array based on your forms.py ProductForm's 'required' status
+            // Example assumes 'name', 'title', 'user', 'main_category', 'sub_category', 'product_status' are required.
+            const requiredFields = [
+                document.getElementById('id_name'),
+                document.getElementById('id_title'),
+                document.getElementById('id_user'),
+                document.getElementById('id_main_category'),
+                document.getElementById('id_sub_category'),
+                document.getElementById('id_product_status')
+            ];
+
+            requiredFields.forEach(function(field) {
+                if (field) { // Check if the field element actually exists
+                    // For text, textarea, select inputs
+                    if (field.tagName === 'SELECT' || field.type === 'text' || field.type === 'textarea' || field.type === 'number') {
+                        if (field.value.trim() === '') {
+                            markInvalid(field);
+                            isValid = false;
+                        } else {
+                            markValid(field);
+                        }
+                    }
+                    // Checkboxes (status, in_stock, featured) are typically not required to be CHECKED,
+                    // but rather, their existence implies a value (true/false).
+                    // If you *must* ensure one of these is checked, you'd need specific logic.
+                    // For now, they are treated as having a value if they exist.
+                }
+            });
+
+            if (!isValid) {
+                event.preventDefault(); // Stop form submission
+                // alert('Please fill in all required fields.'); // Optional: provide a general alert
             }
         });
-        // Set initial state based on Django form's initial value
-        if (checkbox.checked) {
-            checkbox.closest('label').classList.add('is-checked');
-        }
+
+        // Optional: Remove invalid styling when user starts typing/interacting
+        document.querySelectorAll('.form-control').forEach(function(field) {
+            field.addEventListener('input', function() {
+                markValid(this);
+            });
+            // For select elements, 'change' is more appropriate
+            field.addEventListener('change', function() {
+                markValid(this);
+            });
+        });
+
+
+        // Handle button-like styling for checkboxes (retained your original logic)
+        document.querySelectorAll('.product-status-buttons input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const label = checkbox.closest('label');
+                if (checkbox.checked) {
+                    label.classList.add('active'); // Add 'active' class when checked
+                } else {
+                    label.classList.remove('active'); // Remove when unchecked
+                }
+            });
+            // Set initial state based on Django form's initial value
+            if (checkbox.checked) {
+                checkbox.closest('label').classList.add('active');
+            }
+        });
+
     });
 </script>
 {% endblock %}

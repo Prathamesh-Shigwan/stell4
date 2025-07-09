@@ -43,7 +43,7 @@ from .models import *
 from .forms import *
 from django.shortcuts import render
 from django.contrib.auth.models import User
-from .models import Order, Product, Cart
+from .models import Order, Product, Cart, Brand
 from django.db.models import Sum, Count
 from blog.models import Blog  # Import Blog model
 from django.contrib.admin import AdminSite
@@ -117,6 +117,7 @@ def home(request):
     featured_products = Product.objects.filter(featured=True).order_by('-id')[:8]
     main_categories = MainCategory.objects.prefetch_related('subcategories').all()
     site_content = SiteContent.objects.first() # Fetch the site content
+    brands = Brand.objects.filter(is_active=True)
 
     context = {
         'products': products,
@@ -127,6 +128,7 @@ def home(request):
         'featured_products': featured_products,
         'main_categories': main_categories,
         'site_content': site_content,
+        'brands': brands,
     }
 
     return render(request, 'home.html', context)
@@ -261,13 +263,13 @@ def contact(request):
                     email_subject,
                     email_message,
                     email,  # From email (sender's email)
-                    ['stellarspvt@gmail.com'],  # To email (your email or business email)
+                    ['prathameshshigwan222@gmail.com'],  # To email
                     fail_silently=False,
                 )
                 success_message = "Your message has been sent successfully. Thank you for contacting us!"
+                form = ContactForm()  # <-- ADD THIS LINE to create a new, empty form
             except Exception as e:
                 success_message = "An error occurred while sending your message. Please try again."
-
     else:
         form = ContactForm()
 
@@ -1371,6 +1373,10 @@ def send_order_email(request, order_id):
 @login_required(login_url=reverse_lazy('accounts:login'))
 def order_tracking(request):
     user_orders = Order.objects.filter(user=request.user)
+    # --- ADD THIS DEBUG LINE ---
+    for order in user_orders:
+        print(f"Order ID: {order.order_id}, Tracking ID: {order.tracking_id}, Tracking URL: {order.tracking_url}")
+    # ---------------------------
     context = {'orders': user_orders}
     return render(request, 'order_tracking2.html', context)
 

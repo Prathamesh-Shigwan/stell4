@@ -338,20 +338,20 @@
                     <div class="form-section-title">Variant Details</div>
 
                     <div class="styled-input">
-                        <label class="form-label" for="{{ form.product.id_for_label }}">Product</label>
+                        <label class="form-label" for="{{ form.product.id_for_label }}">Product <span style="color: red;">*</span></label>
                         {{ form.product }}
                     </div>
                     <div class="styled-input">
-                        <label class="form-label" for="{{ form.color.id_for_label }}">Color</label>
+                        <label class="form-label" for="{{ form.color.id_for_label }}">Color <span style="color: red;">*</span></label>
                         {{ form.color }}
                     </div>
                     <div class="styled-input">
-                        <label class="form-label" for="{{ form.gender.id_for_label }}">Gender</label>
+                        <label class="form-label" for="{{ form.gender.id_for_label }}">Gender <span style="color: red;">*</span></label>
                         {{ form.gender }}
                     </div>
 
                     <div class="styled-input">
-                        <label for="id_image" class="custom-file-upload">Choose Main Image</label>
+                        <label for="id_image" class="custom-file-upload">Choose Main Image <span style="color: red;">*</span></label>
                         {{ form.image }}
                         <small id="image-label" class="form-text text-muted">
                             {# Display current file name if it exists #}
@@ -404,28 +404,45 @@
             </div>
 
             <div class="col-md-6">
-                <div class="column-section">
-                    <div class="form-section-title">Size Options</div>
-                    {{ size_formset.management_form }}
-                    {% for size_subform in size_formset %}
-                        <div class="size-option-row">
-                            {{ size_subform.id }} {# Hidden ID field for existing instances #}
-                            <div class="row g-3 mb-3 align-items-end"> {# Added align-items-end for better vertical alignment #}
-                                <div class="col-6 col-md-3 styled-input"><label class="form-label" for="{{ size_subform.size.id_for_label }}">Size</label>{{ size_subform.size }}</div>
-                                <div class="col-6 col-md-3 styled-input"><label class="form-label" for="{{ size_subform.price.id_for_label }}">Price</label>{{ size_subform.price }}</div>
-                                <div class="col-6 col-md-3 styled-input"><label class="form-label" for="{{ size_subform.old_price.id_for_label }}">Old Price</label>{{ size_subform.old_price }}</div>
-                                <div class="col-6 col-md-3 styled-input"><label class="form-label" for="{{ size_subform.stock_quantity.id_for_label }}">Stock</label>{{ size_subform.stock_quantity }}</div>
-                                {% if size_subform.DELETE %}
-                                <div class="col-12">
-                                    <div class="form-check">{{ size_subform.DELETE }} <label class="form-check-label">Delete</label></div>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endfor %}
-
+    <div class="column-section">
+        <div class="form-section-title">Size Options</div>
+        {{ size_formset.management_form }}
+        {% for size_subform in size_formset %}
+            <div class="size-option-row">
+                {{ size_subform.id }} {# Hidden ID field for existing instances #}
+                <div class="row g-3 mb-3 align-items-end"> {# Added align-items-end for better vertical alignment #}
+                    <div class="col-6 col-md-3 styled-input">
+                        <label class="form-label" for="{{ size_subform.size.id_for_label }}">
+                            Size {% if forloop.first %}<span style="color: red;">*</span>{% endif %}
+                        </label>
+                        {{ size_subform.size }}
+                    </div>
+                    <div class="col-6 col-md-3 styled-input">
+                        <label class="form-label" for="{{ size_subform.price.id_for_label }}">
+                            Price (in ₹) {% if forloop.first %}<span style="color: red;">*</span>{% endif %}
+                        </label>
+                        {{ size_subform.price }}
+                    </div>
+                    <div class="col-6 col-md-3 styled-input">
+                        <label class="form-label" for="{{ size_subform.old_price.id_for_label }}">Old Price (in ₹)</label>
+                        {{ size_subform.old_price }}
+                    </div>
+                    <div class="col-6 col-md-3 styled-input">
+                        <label class="form-label" for="{{ size_subform.stock_quantity.id_for_label }}">
+                            Stock {% if forloop.first %}<span style="color: red;">*</span>{% endif %}
+                        </label>
+                        {{ size_subform.stock_quantity }}
+                    </div>
+                    {% if size_subform.DELETE %}
+                    <div class="col-12">
+                        <div class="form-check">{{ size_subform.DELETE }} <label class="form-check-label">Delete</label></div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
+        {% endfor %}
+    </div>
+</div>
         </div>
 
         <div class="d-flex justify-content-center mt-4">

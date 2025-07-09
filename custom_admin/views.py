@@ -5,14 +5,15 @@ from django.views.decorators.http import require_POST
 from products.models import MainCategory, SubCategory, Product, CartItem, Order, OrderItem, \
     ExtraImages, ProductVariant, VariantExtraImage, Cart, CartItem, \
     Wishlist, ShippingAddress, BillingAddress, BannerImage, About, SiteSettings, DiscountCode, VariantSizeOption, \
-    MediaLibrary, SiteContent
+    MediaLibrary, SiteContent, Brand
 from accounts.models import User
 from accounts.forms import UserRoleUpdateForm, ProfileForm, UserUpdateForm
 from django.http import FileResponse
-
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm
 from blog.models import Blog
 from django.contrib.admin.views.decorators import staff_member_required
-from datetime import datetime, timedelta, date, timezone
+from datetime import datetime, timedelta, date, timezone, time
 from django.http import JsonResponse
 from django.utils.timezone import make_aware, localtime
 from django.contrib.admin.models import LogEntry
@@ -25,7 +26,6 @@ from openpyxl.styles import Font, Alignment, PatternFill
 from decimal import Decimal # Make sure this is also there now
 from django.db.models import Prefetch, Sum, Count # Add Prefetch here!
 from django.utils.timezone import now, make_aware, localtime
-from datetime import timedelta, datetime
 import json
 from django.utils.timezone import now
 from django.db import models  # Import the models module
@@ -33,7 +33,8 @@ from custom_admin.utils import get_recent_actions_ut  # Ensure you have this fun
 from custom_admin.forms import DateRangeForm, MainCategoryForm, SubCategoryForm, \
     ProductForm, ProductVariantForm, VariantExtraImageForm, \
     OrderForm, CartForm, WishlistForm, VariantSizeOptionFormSet, VariantExtraImageFormSet, \
-    BlogForm, BannerImageForm, CustomerForm, ProfileForm, AboutForm, SiteSettingsForm, DiscountCodeForm, SiteContentForm
+    BlogForm, BannerImageForm, CustomerForm, ProfileForm, AboutForm, SiteSettingsForm, DiscountCodeForm, \
+    SiteContentForm, BrandForm, CustomAdminAuthenticationForm
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import get_object_or_404, redirect, render
 from django.forms import modelformset_factory
@@ -64,82 +65,66 @@ from reportlab.graphics.barcode import code128
 import zipfile
 from collections import defaultdict
 from django.utils.timezone import localdate
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.contrib.auth.decorators import login_required
 
-import datetime
+
 def is_admin(user):
     return user.is_superuser
 
 
+@login_required(login_url='custom_admin:admin_login')
 def dashboard(request):
-    if not request.user.is_authenticated:
-        return render(request, 'custom_admin/welcome.html', {'message': 'Please log in to view the dashboard.'})
+    # The decorator above handles the login check, so the manual 'if not request.user.is_authenticated' is no longer needed.
 
-    # Check if the user has the 'admin' or 'finance_manager' role
-    if request.user.role in ['admin', 'finance_manager']:
-        # Default date range (current month)
+    # Check if the logged-in user has a role permitted to see the dashboard.
+    # We can expand this to include other relevant staff roles.
+    allowed_roles = ['admin', 'finance_manager', 'inventory_manager', 'content_manager', 'staff']
+    if request.user.role in allowed_roles:
+
+        # --- All the logic to gather data for the dashboard remains the same ---
         today = now()
-        default_start_date = today.replace(day=1).date()  # Convert to date
-        default_end_date = today.date()  # Convert to date
+        default_start_date = today.replace(day=1).date()
+        default_end_date = today.date()
 
-        # Process the date filter form
         form = DateRangeForm(request.GET or None)
-        start_date = default_start_date
-        end_date = default_end_date
+        start_date_obj = default_start_date
+        end_date_obj = default_end_date
 
         if form.is_valid():
-            start_date = form.cleaned_data.get('start_date') or default_start_date
-            end_date = form.cleaned_data.get('end_date') or default_end_date
+            start_date_obj = form.cleaned_data.get('start_date') or default_start_date
+            end_date_obj = form.cleaned_data.get('end_date') or default_end_date
 
-        start_date = make_aware(datetime.datetime.combine(start_date, datetime.time.min))
-        end_date = make_aware(datetime.datetime.combine(end_date, datetime.time.max))
+        start_date_aware = make_aware(datetime.combine(start_date_obj, time.min))
+        end_date_aware = make_aware(datetime.combine(end_date_obj, time.max))
 
-        # Total sales (sum of all orders' totals) within the date range
-        total_sales = Order.objects.filter(status='completed', created_at__range=(start_date, end_date)) \
-            .aggregate(Sum('total'))['total__sum'] or 0.00
+        orders_in_range = Order.objects.filter(created_at__range=(start_date_aware, end_date_aware))
 
-        # Total orders count within the date range
-        total_orders = Order.objects.filter(created_at__range=(start_date, end_date)).count()
+        total_sales = orders_in_range.filter(status='completed').aggregate(Sum('total'))['total__sum'] or 0.00
+        total_orders = orders_in_range.count()
 
-        # Payment methods breakdown
-        payment_methods_data = Order.objects.filter(created_at__range=(start_date, end_date)) \
-            .values('payment_method').annotate(count=Count('payment_method'))
+        payment_methods_data = orders_in_range.values('payment_method').annotate(count=Count('id'))
 
-        # Extracting prepaid and COD orders for the template
         prepaid_orders = 0
         cod_orders = 0
         for method in payment_methods_data:
-            if method['payment_method'].lower() == 'prepaid': # Adjust as per your actual payment method names
-                prepaid_orders = method['count']
-            elif method['payment_method'].lower() == 'cash on delivery': # Adjust as per your actual payment method names
-                cod_orders = method['count']
+            payment_method_str = (method.get('payment_method') or '').lower()
+            if 'cash' in payment_method_str:
+                cod_orders += method.get('count', 0)
+            else:
+                prepaid_orders += method.get('count', 0)
 
-
-        # Total products count
         total_products = Product.objects.count()
         total_variants = ProductVariant.objects.count()
-
-        # Products in cart
         products_in_cart = CartItem.objects.aggregate(total=Sum('quantity'))['total'] or 0
-
-        # Canceled orders count within the date range
-        canceled_orders = Order.objects.filter(status='cancelled', created_at__range=(start_date, end_date)).count()
-
-        # Returned orders count within the date range
-        returned_orders = Order.objects.filter(status='returned', created_at__range=(start_date, end_date)).count()
-
-        # Replaced orders count within the date range
-        replaced_orders = Order.objects.filter(status='replaced', created_at__range=(start_date, end_date)).count()
-
-        # Total customers
+        canceled_orders = orders_in_range.filter(status='cancelled').count()
+        returned_orders = orders_in_range.filter(status='returned').count()
+        replaced_orders = orders_in_range.filter(status='replaced').count()
         total_customers = User.objects.filter(is_staff=False).count()
-
-        # Total blogs
         total_blogs = Blog.objects.count()
-
-        # Recent orders
         recent_orders = Order.objects.select_related('user').order_by('-created_at')[:10]
-
-        # Recent actions (custom utility function to fetch admin actions)
         recent_actions = get_recent_actions(request)
 
         context = {
@@ -148,7 +133,7 @@ def dashboard(request):
             'total_orders': total_orders,
             'prepaid_orders': prepaid_orders,
             'cod_orders': cod_orders,
-            'payment_methods': payment_methods_data,  # List of payment methods with counts
+            'payment_methods': payment_methods_data,
             'total_products': total_products,
             'products_in_cart': products_in_cart,
             'canceled_orders': canceled_orders,
@@ -160,12 +145,13 @@ def dashboard(request):
             'recent_actions': recent_actions,
             'total_variants': total_variants,
         }
-
         return render(request, 'custom_admin/dashboard.html', context)
-    else:
-        # For users who are not admin or finance_manager
-        return render(request, 'custom_admin/welcome.html', {})
 
+    else:
+        # If the user is logged in but doesn't have a permitted role, show an access denied message.
+        return render(request, 'custom_admin/welcome.html', {
+            'message': 'Access Denied: You do not have the required permissions to view the dashboard.'
+        })
 
 @staff_member_required
 def export_orders_excel(request):
@@ -1336,60 +1322,49 @@ def generate_all_variant_labels(request):
 
 def order_list_view(request):
     # Start with all orders
-    orders = Order.objects.all()
+    orders = Order.objects.select_related('user').all() # Optimized with select_related
 
     # Retrieve filter parameters from the request's GET query string
-    search_query = request.GET.get('q')           # For Order ID or User search
-    status_filter = request.GET.get('status')      # For order status
-    payment_method_filter = request.GET.get('payment_method') # For payment method
-    start_date_str = request.GET.get('start_date') # For start date of creation
-    end_date_str = request.GET.get('end_date')     # For end date of creation
+    search_query = request.GET.get('q')
+    status_filter = request.GET.get('status')
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
 
     # Apply the search query filter (Order ID or Username)
     if search_query:
-        # Use Q objects to combine multiple OR conditions for the search
         orders = orders.filter(
-            Q(order_id__icontains=search_query) |  # Case-insensitive search on order_id
-            Q(user__username__icontains=search_query) # Case-insensitive search on associated username
+            Q(order_id__icontains=search_query) |
+            Q(user__username__icontains=search_query)
         )
 
     # Apply the status filter
     if status_filter:
         orders = orders.filter(status=status_filter)
 
-
     # Apply the date range filters
     if start_date_str:
         try:
-            # Parse the start date string into a date object (YYYY-MM-DD format from HTML date input)
-            start_date_obj = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
-            # Filter orders created on or after the start date
+            # ✅ CORRECTED: Removed the extra '.datetime'
+            start_date_obj = datetime.strptime(start_date_str, '%Y-%m-%d').date()
             orders = orders.filter(created_at__date__gte=start_date_obj)
-        except ValueError:
-            # If the date format is invalid, ignore the filter for this parameter
-            print(f"Warning: Invalid start_date format provided: {start_date_str}")
+        except (ValueError, TypeError):
             pass
 
     if end_date_str:
         try:
-            # Parse the end date string into a date object (YYYY-MM-DD format from HTML date input)
-            end_date_obj = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date()
-            # Filter orders created on or before the end date
+            # ✅ CORRECTED: Removed the extra '.datetime'
+            end_date_obj = datetime.strptime(end_date_str, '%Y-%m-%d').date()
             orders = orders.filter(created_at__date__lte=end_date_obj)
-        except ValueError:
-            # If the date format is invalid, ignore the filter for this parameter
-            print(f"Warning: Invalid end_date format provided: {end_date_str}")
+        except (ValueError, TypeError):
             pass
 
     # Calculate final_total for each order before passing to the template.
-    # It's good practice to ensure discount is treated as 0 if None.
     for order in orders:
         order.final_total = order.total - (order.discount if order.discount is not None else 0)
 
-    # Assuming Order.STATUS_CHOICES is defined in your Order model
     statuses = Order.STATUS_CHOICES
 
-    return render(request, 'custom_admin/order/order_list.html', {
+    context = {
         'orders': orders,
         'statuses': statuses,
         # Pass back the filter values so they can persist in the form fields
@@ -1397,8 +1372,8 @@ def order_list_view(request):
         'selected_start_date': start_date_str,
         'selected_end_date': end_date_str,
         'search_query': search_query,
-    })
-
+    }
+    return render(request, 'custom_admin/order/order_list.html', context)
 
 
 def add_order_view(request):
@@ -1440,20 +1415,102 @@ def update_order_status_view(request, pk):
         order = get_object_or_404(Order, pk=pk)
         new_status = request.POST.get('status')
 
+        # Get the status before making any changes
+        old_status = order.status
+
         # Check if the new status is a valid choice
         valid_statuses = [choice[0] for choice in Order.STATUS_CHOICES]
+
         if new_status in valid_statuses:
-            order.status = new_status
-            order.save()
+            # *** IMPORTANT: Only update and send email if the status has changed ***
+            if new_status != old_status:
+                order.status = new_status
+                order.save()
+
+                # Call the function to send the email notification
+                send_order_status_update_email(order)
+
+                messages.success(request,
+                                 f"Order #{order.order_id} status updated to '{order.get_status_display()}' and a notification has been sent to the user.")
+            else:
+                messages.info(request,
+                              f"Order #{order.order_id} status was already '{order.get_status_display()}'. No changes made.")
+        else:
+            messages.error(request, "Invalid status selected.")
 
     # Redirect back to the order list page
     return redirect('custom_admin:order_list')
 
+def send_order_status_update_email(order):
+    """
+    Sends an email to the user when their order status is updated.
+    """
+    if not order or not order.user:
+        return
+
+    user = order.user
+    subject = f"Update on your Stellars Order #{order.order_id}"
+
+    # Prepare context for the email template
+    context = {
+        'user': user,
+        'order': order,
+    }
+
+    # Render the HTML email content
+    html_message = render_to_string('custom_admin/order_status_update_email.html', context)
+
+    # Send the email
+    try:
+        send_mail(
+            subject,
+            '',  # Plain text message (optional, Django can use the HTML)
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+    except Exception as e:
+        # Log the error if email sending fails
+        print(f"Error sending email for order {order.order_id}: {e}")
+
 
 def cart_list_view(request):
-    carts = Cart.objects.all()
-    return render(request, 'custom_admin/order/cart_list.html', {'carts': carts})
+    # Start by getting only carts with at least one item
+    carts = Cart.objects.annotate(
+        item_count=Count('cartitem')
+    ).filter(item_count__gt=0).select_related('user')
 
+    # --- Apply Filters ---
+    user_query = request.GET.get('user')
+    date_query = request.GET.get('date')
+
+    if user_query:
+        carts = carts.filter(user__username__icontains=user_query)
+
+    if date_query:
+        try:
+            # ✅ CORRECTED: Removed the extra '.datetime' to match the import style
+            filter_date = datetime.strptime(date_query, '%Y-%m-%d').date()
+            carts = carts.filter(updated__date=filter_date)
+        except (ValueError, TypeError):
+            pass
+
+    # --- Apply Sorting ---
+    order_by = request.GET.get('order_by', 'updated')
+    order_direction = request.GET.get('order_direction', 'desc')
+
+    valid_sort_fields = ['id', 'user__username', 'total', 'updated']
+    if order_by in valid_sort_fields:
+        if order_direction == 'desc':
+            order_by = f'-{order_by}'
+        carts = carts.order_by(order_by)
+
+    context = {
+        'carts': carts,
+        'request': request,
+    }
+    return render(request, 'custom_admin/order/cart_list.html', context)
 
 def add_cart_view(request):
     if request.method == 'POST':
@@ -1487,8 +1544,40 @@ def delete_cart_view(request, pk):
 
 
 def wishlist_list_view(request):
-    wishlists = Wishlist.objects.all()
-    return render(request, 'custom_admin/order/wishlist_list.html', {'wishlists': wishlists})
+    # Use select_related for better performance
+    wishlists = Wishlist.objects.select_related('user', 'product', 'product_variant').all()
+
+    # Get filter parameters from the request
+    user_query = request.GET.get('user')
+    date_query = request.GET.get('date')
+
+    # Apply filters
+    if user_query:
+        wishlists = wishlists.filter(user__username__icontains=user_query)
+
+    if date_query:
+        try:
+            # ✅ CORRECTED: Removed the extra '.datetime' to match your import style
+            filter_date = datetime.strptime(date_query, '%Y-%m-%d').date()
+            wishlists = wishlists.filter(date__date=filter_date)
+        except (ValueError, TypeError):
+            pass
+
+    # Get sorting parameters
+    order_by = request.GET.get('order_by', 'date')
+    order_direction = request.GET.get('order_direction', 'desc')
+
+    # Apply sorting
+    if order_by in ['id', 'user__username', 'product__name', 'date']:
+        if order_direction == 'desc':
+            order_by = f'-{order_by}'
+        wishlists = wishlists.order_by(order_by)
+
+    context = {
+        'wishlists': wishlists,
+        'request': request,
+    }
+    return render(request, 'custom_admin/order/wishlist_list.html', context)
 
 # Add View
 def add_wishlist_view(request):
@@ -1696,10 +1785,72 @@ def delete_banner_view(request, pk):
     return render(request, 'custom_admin/order/delete_banner.html', {'banner': banner})
 
 
-@staff_member_required
 def customer_list_view(request):
-    customers = User.objects.filter(is_staff=False)
-    return render(request, 'custom_admin/order/customer_list.html', {'customers': customers})
+    # Get filter and sort parameters from the request
+    query = request.GET.get('q', '')
+    sort_by = request.GET.get('sort_by', '-date_joined') # Default sort by newest joined
+    order = request.GET.get('order', 'desc')
+
+    # Start with the base queryset
+    customers = User.objects.filter(is_staff=False).select_related('profile')
+
+    # Apply search filter
+    if query:
+        customers = customers.filter(
+            Q(username__icontains=query) |
+            Q(email__icontains=query)
+        )
+
+    # Apply sorting
+    valid_sort_fields = ['email', 'username', 'last_login', 'date_joined']
+    if sort_by in valid_sort_fields:
+        if order == 'desc':
+            sort_by = f'-{sort_by}'
+        customers = customers.order_by(sort_by)
+
+    # Determine if any filters are active to show the "Clear" button
+    filters_active = bool(query)
+
+    context = {
+        'customers': customers,
+        'query': query,
+        'sort_by': sort_by,
+        'order': order,
+        'filters_active': filters_active,
+    }
+    return render(request, 'custom_admin/order/customer_list.html', context)
+
+
+def send_reengagement_email(request, user_id):
+    """
+    Sends a re-engagement email to a user who has been inactive.
+    """
+    user = get_object_or_404(User, id=user_id)
+
+    subject = f"We've Missed You at Stellars, {user.username}! ✨"
+    context = {
+        'user': user,
+        'cta_link': request.build_absolute_uri('/'),  # Links to your homepage
+    }
+
+    # Render the HTML content from the template
+    html_message = render_to_string('custom_admin/reengagement_email.html', context)
+
+    try:
+        send_mail(
+            subject,
+            '',  # Plain text message (optional)
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        messages.success(request, f"Re-engagement email sent successfully to {user.username}.")
+    except Exception as e:
+        messages.error(request, f"Failed to send email: {e}")
+
+    # Redirect back to the customer list page
+    return redirect('custom_admin:customer_list')
 
 @staff_member_required
 def add_customer_view(request):
@@ -1791,16 +1942,45 @@ def delete_about_view(request, pk):
     return render(request, 'custom_admin/order/delete_about.html', {'about_item': about_item})
 
 
-@login_required
 def user_list_view(request):
     if request.user.role != 'admin':
         return render(request, 'custom_admin/access_denied.html', {
             'message': "You do not have permission to view this page."
         })
 
-    users = User.objects.exclude(is_superuser=True)
-    return render(request, 'custom_admin/user_list.html', {'users': users})
+    # Get filter values from the request URL
+    search_query = request.GET.get('q', '')
+    role_filter = request.GET.get('role', '')
+    include_users_filter = request.GET.get('include_users') # ✅ Get the new filter value
 
+    # Start with the base queryset, excluding superusers
+    users = User.objects.exclude(is_superuser=True)
+
+    # ✅ Add new logic to hide the 'user' role by default
+    if not include_users_filter:
+        users = users.exclude(role='user')
+
+    # Apply search filter for username OR email
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+
+    # Apply role dropdown filter
+    if role_filter:
+        users = users.filter(role=role_filter)
+
+    role_choices = User._meta.get_field('role').choices
+
+    context = {
+        'users': users.order_by('username'),
+        'role_choices': role_choices,
+        'current_search': search_query,
+        'current_role': role_filter,
+        'include_users_checked': include_users_filter, # ✅ Pass the checkbox state to the template
+    }
+    return render(request, 'custom_admin/user_list.html', context)
 
 @login_required
 def edit_user_role(request, user_id):
@@ -2015,3 +2195,129 @@ def site_content_delete(request):
     }
     return render(request, 'custom_admin/site_content_confirm_delete.html', context)
 
+
+def send_reminder_email(request, user_id, reminder_type):
+    """
+    Sends a reminder email to a user for their cart or wishlist.
+    """
+    user = get_object_or_404(User, id=user_id)
+
+    # Determine the subject, template, and items based on the reminder type
+    if reminder_type == 'cart':
+        cart = Cart.objects.filter(user=user).first()
+        if not cart or cart.cartitem_set.count() == 0:
+            messages.warning(request, f"{user.username}'s cart is empty. No email sent.")
+            return redirect('custom_admin:cart_list')
+
+        subject = "You left some items in your shopping cart! 🛒"
+        template_name = 'custom_admin/cart_reminder_email.html'
+        items = cart.cartitem_set.all()
+        context = {
+            'user': user,
+            'items': items,
+            'cta_link': request.build_absolute_uri('/cart/'),  # Adjust if your cart URL is different
+        }
+
+    elif reminder_type == 'wishlist':
+        wishlist_items = Wishlist.objects.filter(user=user)
+        if not wishlist_items.exists():
+            messages.warning(request, f"{user.username}'s wishlist is empty. No email sent.")
+            return redirect('custom_admin:wishlist_list')
+
+        subject = "Still thinking about these items? 👀"
+        template_name = 'custom_admin/wishlist_reminder_email.html'
+        context = {
+            'user': user,
+            'items': wishlist_items,
+            'cta_link': request.build_absolute_uri('/wishlist/'),  # Adjust if your wishlist URL is different
+        }
+    else:
+        messages.error(request, "Invalid reminder type.")
+        return redirect('custom_admin:dashboard')
+
+    # Render the HTML content from the template
+    html_message = render_to_string(template_name, context)
+
+    try:
+        send_mail(
+            subject,
+            '',  # Plain text message (optional)
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        messages.success(request, f"Reminder email sent successfully to {user.username}.")
+    except Exception as e:
+        messages.error(request, f"Failed to send email: {e}")
+
+    # Redirect back to the page the admin came from
+    return redirect(request.META.get('HTTP_REFERER', 'custom_admin:dashboard'))
+
+
+@staff_member_required
+def brand_list_view(request):
+    brands = Brand.objects.all()
+    return render(request, 'custom_admin/brand_list.html', {'brands': brands})
+
+@staff_member_required
+def add_brand_view(request):
+    if request.method == 'POST':
+        form = BrandForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Brand added successfully!')
+            return redirect('custom_admin:brand_list')
+    else:
+        form = BrandForm()
+    # Pass the form and title to the new template
+    return render(request, 'custom_admin/brand_form.html', {'form': form, 'title': 'Add New Brand'})
+
+@staff_member_required
+def edit_brand_view(request, pk):
+    brand = get_object_or_404(Brand, pk=pk)
+    if request.method == 'POST':
+        form = BrandForm(request.POST, request.FILES, instance=brand)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Brand updated successfully!')
+            return redirect('custom_admin:brand_list')
+    else:
+        form = BrandForm(instance=brand)
+    # Pass the form and a dynamic title to the new template
+    return render(request, 'custom_admin/brand_form.html', {'form': form, 'title': f'Edit Brand: {brand.name}'})
+
+@staff_member_required
+def delete_brand_view(request, pk):
+    brand = get_object_or_404(Brand, pk=pk)
+    if request.method == 'POST':
+        brand.delete()
+        messages.success(request, 'Brand deleted successfully!')
+        return redirect('custom_admin:brand_list')
+    return render(request, 'custom_admin/confirm_delete.html', {'object': brand})
+
+
+def admin_login_view(request):
+    """
+    Handles the login for staff and admin users.
+    """
+    if request.user.is_authenticated and request.user.is_staff:
+        return redirect('custom_admin:dashboard')
+
+    if request.method == 'POST':
+        # Use your new custom form here
+        form = CustomAdminAuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None and user.is_staff:
+                login(request, user)
+                return redirect('custom_admin:dashboard')
+            else:
+                messages.error(request, "Invalid credentials or you do not have staff permissions.")
+    else:
+        # And also use it here for GET requests
+        form = CustomAdminAuthenticationForm()
+
+    return render(request, 'custom_admin/login.html', {'form': form})

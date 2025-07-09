@@ -716,18 +716,47 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const cartBadge = document.querySelector('.cart-count-badge');
-                if (cartBadge) {
+                // Start of the updated cart count badge logic for product_details.html
+                const cartMenuLink = document.querySelector('.htc__shopping__cart .cart__menu');
+                let cartBadge = Array.from(cartMenuLink.children).find(child =>
+                    child.tagName === 'SPAN' && !child.classList.contains('icon') && child.style.position === 'absolute'
+                );
+
+                if (data.total_items > 0) {
+                    if (!cartBadge) {
+                        // If badge doesn't exist, create it
+                        cartBadge = document.createElement('span');
+                        cartMenuLink.appendChild(cartBadge); // Append to the <a> tag
+
+                        // Apply all inline styles directly
+                        cartBadge.style.position = 'absolute';
+                        cartBadge.style.top = '-8px';
+                        cartBadge.style.right = '-10px';
+                        cartBadge.style.background = '#2bdac7';
+                        cartBadge.style.color = 'white';
+                        cartBadge.style.fontSize = '12px';
+                        cartBadge.style.fontWeight = 'bold';
+                        cartBadge.style.padding = '2px 6px';
+                        cartBadge.style.borderRadius = '50%';
+                        cartBadge.style.lineHeight = '1';
+                        cartBadge.style.display = 'flex'; // For centering
+                        cartBadge.style.alignItems = 'center'; // For centering
+                        cartBadge.style.justifyContent = 'center'; // For centering
+                        cartBadge.style.minWidth = '20px'; // To ensure circular shape
+                        cartBadge.style.height = '20px';   // To ensure circular shape
+                    }
                     cartBadge.textContent = data.total_items;
+                    cartBadge.style.display = 'flex'; // Ensure it's visible if it was hidden
                 } else {
-                    const icon = document.querySelector('.icon-handbag');
-                    if (icon) {
-                        const badge = document.createElement('span');
-                        badge.className = 'cart-count-badge';
-                        badge.textContent = data.total_items;
-                        icon.parentElement.appendChild(badge);
+                    // If total_items is 0, hide or remove the badge
+                    if (cartBadge) {
+                        cartBadge.textContent = ''; // Clear text
+                        cartBadge.style.display = 'none'; // Hide it
+                        // Or cartBadge.remove(); to remove it completely
                     }
                 }
+                // End of the updated cart count badge logic for product_details.html
+
                 alert('Product added to cart successfully!');
             } else {
                 alert(data.error || 'Something went wrong while adding to cart.');

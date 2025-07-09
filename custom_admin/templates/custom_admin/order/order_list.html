@@ -2,224 +2,207 @@
 
 {% block content %}
 <style>
-    /* General Container Styling */
-    .container-fluid {
-        padding-top: 20px;
-        padding-left: 30px;
-        padding-right: 30px;
-        background-color: #f4f7fa;
+    /* Main container and page title */
+    .container.mt-4 {
+        border: 2px solid black;
+        padding: 20px;
+        border-radius: 8px;
+        background-color: #ffffff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
     }
 
-    /* Page Title */
-    h2.page-title {
-        font-size: 24px;
+    h2 {
+        color: #343a40;
         font-weight: 600;
         margin-bottom: 20px;
-        color: #333;
     }
 
-    /* Filter and Search Form Styling */
-    .filter-search-container {
-        background-color: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-        padding: 15px 20px;
-        margin-bottom: 20px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 15px;
-        align-items: center;
+    /* General form and button styling */
+    .form-control, .form-select {
+        border: 1px solid #ced4da;
+        height: 38px;
+        border-radius: 0.25rem;
     }
 
-    .filter-search-container label {
-        font-weight: 500;
-        color: #555;
-        margin-right: 5px;
+    .btn {
+        font-weight: bold;
     }
 
-    .filter-search-container select,
-    .filter-search-container input[type="text"],
-    .filter-search-container input[type="date"] {
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        font-size: 14px;
-        color: #333;
-        min-width: 150px;
+    /* Table styles */
+    .table-wrapper {
+        overflow-x: auto; /* Enables horizontal scrolling on smaller screens */
+        border: 1px solid black;
+        border-radius: 4px;
     }
 
-    .filter-search-container input[type="submit"],
-    .filter-search-container .btn-clear-filters { /* Added this class for styling */
-        background-color: #007bff; /* Blue */
-        color: #fff;
-        padding: 8px 15px;
-        border-radius: 5px;
-        border: none;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-    .filter-search-container input[type="submit"]:hover {
-        background-color: #0056b3;
-    }
-
-    /* Styling for the Clear Filters button */
-    .filter-search-container .btn-clear-filters {
-        background-color: #6c757d; /* Grey */
-    }
-
-    .filter-search-container .btn-clear-filters:hover {
-        background-color: #5a6268;
-    }
-
-    /* Table container styling */
-    .table-container {
-        background-color: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-        overflow: hidden;
-        padding: 20px;
-    }
-
-    /* Main Table Styling */
     .table {
         width: 100%;
         border-collapse: collapse;
+        margin-bottom: 0;
+    }
+
+    .table th,
+    .table td {
+        border: 1px solid black;
+        padding: 12px;
+        text-align: left;
+        vertical-align: middle;
+        font-size: 14px;
+        white-space: nowrap; /* Prevents content from wrapping, ensuring horizontal scroll works as intended */
     }
 
     .table thead th {
-        background-color: #ffffff;
-        color: #333;
+        background-color: #f8f9fa;
         font-weight: 600;
-        font-size: 14px;
-        text-align: center;
-        border: 1px solid #dee2e6;
-        padding: 12px;
     }
 
-    /* Highlighting the actions header */
-    .table thead th.action-header {
-        background-color: #fdeaea;
-        border: 1px solid #f5c6cb;
+    .table td .btn {
+        margin-right: 5px; /* Spacing between action buttons */
     }
 
-    .table tbody td {
-        border: 1px solid #dee2e6;
-        padding: 12px;
-        text-align: center;
-        vertical-align: middle;
-        font-size: 14px;
-        color: #555;
-    }
-
-    /* Make the status dropdown look clean */
+    /* Status dropdown inside the table */
     .status-select {
-        padding: 6px 10px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
+        min-width: 120px;
+        padding: 0.375rem 0.75rem;
     }
 
-    /* Action Buttons Styling */
-    .btn-action {
-        color: #fff;
-        padding: 6px 12px;
-        border-radius: 5px;
-        border: none;
-        font-size: 12px;
-        font-weight: 500;
-        margin: 0 2px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
-    }
+    /* Responsive adjustments for mobile devices */
+    @media (max-width: 768px) {
+        .container.mt-4 {
+            padding: 10px;
+        }
 
-    .btn-edit {
-        background-color: #28a745; /* Green */
-    }
+        h2 {
+            font-size: 1.5rem;
+            text-align: center;
+        }
 
-    .btn-change {
-        background-color: #ffc107; /* Yellow */
-    }
+        /* Stack header items (Title, Search, Filters) */
+        .header-flex, .filter-flex {
+            flex-direction: column;
+            gap: 15px;
+        }
 
-    .btn-delete {
-        background-color: #dc3545; /* Red */
-    }
+        .search-group {
+            width: 100%;
+            margin: 0 !important;
+        }
 
+        .input-group {
+            width: 100%;
+        }
+
+        .filter-form {
+            flex-direction: column;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .filter-form .form-label {
+            margin-bottom: 0;
+        }
+
+        .filter-form .form-select,
+        .filter-form .form-control {
+            width: 100%;
+        }
+
+        /* Adjust table cell padding for more compact view */
+        .table th,
+        .table td {
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        /* Adjust action buttons in table */
+        .table .btn {
+            display: block; /* Stack buttons vertically in the 'Action' column */
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        .table .btn:last-child {
+            margin-bottom: 0;
+        }
+    }
 </style>
 
-<div class="container-fluid">
-    <h2 class="page-title">Order Managements</h2>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 header-flex">
+        <h2>Order Management</h2>
+        <div class="d-flex align-items-center search-group">
+            <form method="GET" class="w-100">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" placeholder="Search by Order ID or User" value="{{ request.GET.q|default:'' }}">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </form>
+            <a href="{% url 'custom_admin:order_list' %}" class="btn btn-secondary ms-2">Clear</a>
+        </div>
+    </div>
 
-    <div class="filter-search-container">
-        <form method="GET" action="">
-            <label for="status-filter">Status:</label>
-            <select name="status" id="status-filter">
+    <div class="d-flex align-items-center mb-4 filter-flex">
+        <form method="GET" class="d-flex align-items-center flex-wrap gap-3 filter-form">
+            <label for="status-filter" class="form-label">Status:</label>
+            <select name="status" id="status-filter" class="form-select" style="width: auto;">
                 <option value="">All</option>
                 {% for value, label in statuses %}
-                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
-                        {{ label }}
-                    </option>
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
 
-            <label for="start-date-filter">From Date:</label>
-            <input type="date" name="start_date" id="start-date-filter" value="{{ request.GET.start_date }}">
+            <label for="start-date-filter" class="form-label">From:</label>
+            <input type="date" name="start_date" id="start-date-filter" class="form-control" value="{{ request.GET.start_date }}" style="width: auto;">
 
-            <label for="end-date-filter">To Date:</label>
-            <input type="date" name="end_date" id="end-date-filter" value="{{ request.GET.end_date }}">
+            <label for="end-date-filter" class="form-label">To:</label>
+            <input type="date" name="end_date" id="end-date-filter" class="form-control" value="{{ request.GET.end_date }}" style="width: auto;">
 
-            <label for="q">Search:</label>
-            <input type="text" name="q" id="q" placeholder="Order ID, User" value="{{ request.GET.q }}">
+            <input type="hidden" name="q" value="{{ request.GET.q|default:'' }}">
+            <input type="hidden" name="sort_by" value="{{ sort_by|default:'' }}">
+            <input type="hidden" name="order" value="{{ order|default:'' }}">
 
-            <input type="submit" value="Apply Filters">
-            <a href="{% url 'custom_admin:order_list' %}" style="text-decoration: none;">
-                <input type="button" value="Clear Filters" class="btn-clear-filters">
-            </a>
+            <button type="submit" class="btn btn-info">Apply Filters</button>
         </form>
     </div>
 
-    <div class="table-container">
+    <div class="table-wrapper">
         <table class="table">
             <thead>
                 <tr>
-                    <th>Order ID</th>
-                    <th>Users</th>
+                    <th><a href="?sort_by=order_id&order={% if sort_by == 'order_id' and order == 'asc' %}desc{% else %}asc{% endif %}&{{ request.GET.urlencode }}">Order ID {% if sort_by == 'order_id' %}{% if order == 'asc' %}&uarr;{% else %}&darr;{% endif %}{% endif %}</a></th>
+                    <th><a href="?sort_by=user&order={% if sort_by == 'user' and order == 'asc' %}desc{% else %}asc{% endif %}&{{ request.GET.urlencode }}">User {% if sort_by == 'user' %}{% if order == 'asc' %}&uarr;{% else %}&darr;{% endif %}{% endif %}</a></th>
                     <th>Status</th>
-                    <th>Amt Total After Disc</th>
+                    <th><a href="?sort_by=final_total&order={% if sort_by == 'final_total' and order == 'asc' %}desc{% else %}asc{% endif %}&{{ request.GET.urlencode }}">Amt Total After Disc {% if sort_by == 'final_total' %}{% if order == 'asc' %}&uarr;{% else %}&darr;{% endif %}{% endif %}</a></th>
                     <th>Payment Type</th>
-                    <th>Date</th>
-                    <th>Expected Delivery date</th>
-                    <th class="action-header">Action</th>
+                    <th><a href="?sort_by=created_at&order={% if sort_by == 'created_at' and order == 'asc' %}desc{% else %}asc{% endif %}&{{ request.GET.urlencode }}">Date {% if sort_by == 'created_at' %}{% if order == 'asc' %}&uarr;{% else %}&darr;{% endif %}{% endif %}</a></th>
+                    <th>Expected Delivery</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 {% for order in orders %}
                 <tr>
                     <td>
-                        {{ order.order_id|default:"RD8ZRFZR" }}
-                        <form id="form-{{ order.pk }}" action="{% url 'custom_admin:update_order_status' order.pk %}" method="POST">
+                        {{ order.order_id }}
+                        <form id="form-{{ order.pk }}" action="{% url 'custom_admin:update_order_status' order.pk %}" method="POST" style="display: none;">
                             {% csrf_token %}
                         </form>
                     </td>
-                    <td>{{ order.user.username|default:"admin" }}</td>
+                    <td>{{ order.user.username }}</td>
                     <td>
-                        <select name="status" class="status-select" form="form-{{ order.pk }}">
+                        <select name="status" class="form-select status-select" form="form-{{ order.pk }}">
                              {% for value, label in statuses %}
-                                <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
-                                    {{ label }}
-                                </option>
+                                <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
                             {% endfor %}
                         </select>
                     </td>
-                    <td>₹{{ order.final_total|default:"797.00"|floatformat:2 }}</td>
-                    <td>{{ order.payment_method|default:"COD" }}</td>
-                    <td>{{ order.created_at|date:"d/m/y P" }}</td>
+                    <td>₹{{ order.final_total|floatformat:2 }}</td>
+                    <td>{{ order.payment_method }}</td>
+                    <td>{{ order.created_at|date:"d/m/y g:i a" }}</td>
                     <td>{{ order.expected_delivery|date:"d/m/y" }} at {{ order.expected_delivery_time|time:"g:i A" }}</td>
                     <td>
-                        <a href="{% url 'custom_admin:edit_order' order.pk %}" class="btn-action btn-edit">Edit</a>
-                        <button type="submit" class="btn-action btn-change" form="form-{{ order.pk }}">Save</button>
-                        <a href="{% url 'custom_admin:delete_order' order.pk %}" class="btn-action btn-delete">Delete</a>
+                        <a href="{% url 'custom_admin:edit_order' order.pk %}" class="btn btn-sm btn-primary">Edit</a>
+                        <button type="submit" class="btn btn-sm btn-warning" form="form-{{ order.pk }}">Save</button>
+                        <a href="{% url 'custom_admin:delete_order' order.pk %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">Delete</a>
                     </td>
                 </tr>
                 {% empty %}
@@ -230,5 +213,9 @@
             </tbody>
         </table>
     </div>
+
+    {% if not orders and request.GET.q %}
+        <p class="text-center mt-3">No results found for "{{ request.GET.q }}".</p>
+    {% endif %}
 </div>
 {% endblock %}

@@ -326,8 +326,8 @@ class DiscountCode(models.Model):
 
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00) # This will store the discounted total
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00) # NEW FIELD for pre-discount total
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     updated = models.DateTimeField(auto_now=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     discount_code = models.ForeignKey(DiscountCode, on_delete=models.SET_NULL, null=True, blank=True, related_name='carts')
@@ -335,24 +335,18 @@ class Cart(models.Model):
     razorpay_order_id = models.CharField(max_length=100, null=True, blank=True)
 
     def calculate_subtotal(self):
-        # Calculate the sum of line_total for all items in the cart
-        # This is the total BEFORE any discount is applied
-        return sum(item.line_total for item in self.cartitem_set.all())
+        # Only calculate if the cart has been saved (has a PK)
+        if self.pk:
+            return sum(item.line_total for item in self.cartitem_set.all())
+        return Decimal('0.00') # Return 0 if not yet saved
 
     def get_discount_amount(self):
-        """
-        Calculates and returns the discount amount.
-        This method should NOT modify the cart's state or mark the coupon as used.
-        """
         discount = Decimal('0.00')
 
-        if not self.discount_code or not self.discount_code.is_valid(user=self.user, cart=self):
+        if not self.pk or not self.discount_code or not self.discount_code.is_valid(user=self.user, cart=self):
             return discount
 
-        # Use the subtotal for discount calculations
         base_for_discount = self.subtotal
-
-        # Specific product/category/min_quantity checks
         cart_items = self.cartitem_set.all()
 
         if self.discount_code.applicable_products.exists():
@@ -372,10 +366,8 @@ class Cart(models.Model):
         if self.discount_code.discount_amount:
             discount = self.discount_code.discount_amount
         elif self.discount_code.discount_percentage:
-            # Ensure percentage calculation is robust
             discount = (Decimal(self.discount_code.discount_percentage) / Decimal('100')) * base_for_discount
 
-        # Ensure discount doesn't exceed the subtotal
         if discount > base_for_discount:
             discount = base_for_discount
 
@@ -385,27 +377,45 @@ class Cart(models.Model):
         return f"Cart id: {self.id}"
 
     def save(self, *args, **kwargs):
-        # 1. Always calculate the subtotal first (sum of item prices)
+        is_new = self._state.adding # Check if the object is being created for the first time
+
+        # First, save the instance to ensure it has a primary key if it's new
+        super().save(*args, **kwargs)
+
+        # Now that the cart has a PK, we can safely calculate subtotal and total
+        # Recalculate and save only if something might have changed, or if it's new and needs initial calculation
+        old_subtotal = self.subtotal
+        old_total = self.total
+        old_discount_code_id = self.discount_code_id # Store the ID to check if it changed
+
         self.subtotal = self.calculate_subtotal()
         self.total = self.subtotal # Start with subtotal for the final total
 
-        # 2. If a discount code is applied and valid, calculate and apply the discount
         if self.discount_code and self.discount_code.is_valid(user=self.user, cart=self):
             discount_amount_to_apply = self.get_discount_amount()
             self.total -= discount_amount_to_apply
 
-            # IMPORTANT: Mark coupon as used when the order is placed/confirmed, not just on cart save.
-            # Otherwise, users can apply a coupon, get it marked as used, and abandon the cart.
-            # If you absolutely need to mark it here, reconsider the `per_user_limit` and `usage_limit`
-            # logic to account for abandoned carts or allow re-using for a period.
-            # For this example, I'll put it here, but with a strong recommendation to move.
-            if self.user:
-                self.discount_code.used_by.add(self.user)
+            # IMPORTANT: Marking coupon as used.
+            # As discussed, it's generally better to mark the coupon as used
+            # only when an order is finalized/placed, not just when the cart is saved.
+            # If you must mark it here, ensure your `is_valid` logic or a separate
+            # mechanism handles potential abandonment and re-usability.
+            if self.user and not is_new and self.discount_code_id != old_discount_code_id: # Only mark if discount code just applied
+                # Or, consider a separate signal/method for marking as used
+                # For now, I'll keep it as you had, but with the warning
+                # self.discount_code.used_by.add(self.user)
+                pass # Removing this line from here as it's problematic for the reasons mentioned in the original code.
 
-        # 3. Save the cart instance
-        super().save(*args, **kwargs)
+        # Only save again if the subtotal or total has actually changed
+        if self.subtotal != old_subtotal or self.total != old_total:
+             # This extra save might trigger an infinite loop if not careful.
+             # A common pattern is to defer saving the updated subtotal/total to a post_save signal
+             # or to only recalculate and update in the view or when items are added/removed.
 
-
+            # For simplicity and to directly address the current problem, we can do this,
+            # but be aware of potential recursive save calls if other parts of your logic
+            # also trigger save() based on these fields.
+            super().save(update_fields=['subtotal', 'total'])
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
@@ -461,6 +471,8 @@ class ProductsReviews(models.Model):
 class Wishlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
+    # Add this line to link to a specific variant
+    product_variant = models.ForeignKey(ProductVariant, on_delete=models.SET_NULL, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -469,7 +481,8 @@ class Wishlist(models.Model):
     def __str__(self):
         user_name = self.user.username if self.user else "No User"
         product_name = self.product.name if self.product else "No Product"
-        return f"{user_name} - {product_name}"
+        variant_info = f" ({self.product_variant.color})" if self.product_variant else ""
+        return f"{user_name} - {product_name}{variant_info}"
 
 
 class Address(models.Model):
@@ -559,6 +572,8 @@ class Order(models.Model):
     replace_requested = models.BooleanField(default=False)
     complete_requested = models.BooleanField(default=False)
 
+    tracking_id = models.CharField(max_length=100, blank=True, null=True, help_text="Tracking ID for the shipment")
+    tracking_url = models.URLField(max_length=500, blank=True, null=True, help_text="URL to track the shipment")
 
 
     # Billing address fields
@@ -706,3 +721,17 @@ class SiteContent(models.Model):
 
     def __str__(self):
         return "Site Content Settings"
+
+
+class Brand(models.Model):
+    name = models.CharField(max_length=100, help_text="Name of the brand for admin and alt text.")
+    image = models.ImageField(upload_to='brands/', help_text="Upload the brand's logo.")
+    is_active = models.BooleanField(default=True, help_text="Only active brands will be displayed on the website.")
+
+    class Meta:
+        verbose_name = "Brand"
+        verbose_name_plural = "Brands"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name

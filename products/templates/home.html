@@ -11,9 +11,7 @@
 <body>
 {% block content %}
 
-        <!-- End Offset Wrapper -->
-{% if not request.user.is_authenticated %}
-<!-- Discount Popup -->
+        {% if not request.user.is_authenticated %}
 <div id="discountPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 120%;
     background-color: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
   <div style="background: white; width: 90%; max-width: 400px; padding: 30px; border-radius: 10px; text-align: center; position: relative;">
@@ -31,9 +29,11 @@
       {% csrf_token %}
       <input type="text" name="name" placeholder="Name" required style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px;">
 
-      <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-        <span style="display: flex; align-items: center; padding: 0 10px; background: #eee; border: 1px solid #ccc; border-radius: 5px;">�🇳 +91</span>
-        <input type="text" name="phone" placeholder="Phone Number" required maxlength="10" pattern="[0-9]{10}" style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+      <div style="display: flex; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; overflow: hidden;"> {# Added border and rounded corners here #}
+        <span style="display: flex; align-items: center; padding: 0 10px; background: #eee; color: #555; border-right: 1px solid #ccc;">
+          &#127470;&#127475; +91 {# HTML entity for India flag emoji #}
+        </span>
+        <input type="text" name="phone" placeholder="Phone Number" required maxlength="10" pattern="[0-9]{10}" style="flex: 1; padding: 10px; border: none; outline: none; border-radius: 0 5px 5px 0;"> {# Removed individual border #}
       </div>
 
       <input type="email" name="email" placeholder="Email address" required style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px;">
@@ -61,6 +61,12 @@
     const closePopup = document.getElementById('closePopup');
     const noThanks = document.getElementById('noThanks');
     const discountForm = document.getElementById('discountForm');
+
+    // Make sure the popup is always centered, even if content changes slightly
+    popup.style.display = 'flex'; // Temporarily show to calculate, then hide
+    popup.style.alignItems = 'center';
+    popup.style.justifyContent = 'center';
+    popup.style.display = 'none'; // Hide again
 
     if (!sessionStorage.getItem('popupShown')) {
       setTimeout(() => {
@@ -102,8 +108,6 @@
 </script>
 {% endif %}
 
-
-
 <div class="slider">
     <div class="slide-track">
         {% for banner in banner_images %}
@@ -125,6 +129,7 @@
     .slide-track {
         display: flex;
         min-width: 100%;
+        /* Default animation for desktop */
         animation: scroll 80s linear infinite;
         height: 100%;
     }
@@ -166,6 +171,10 @@
         .slide {
             width: 50%;
         }
+        /* Very fast animation for tablets/smaller screens (10x faster than 80s = 8s) */
+        .slide-track {
+            animation: scroll 8s linear infinite; /* Drastically increased speed for testing */
+        }
     }
 
     @media (max-width: 480px) {
@@ -186,7 +195,8 @@
         }
 
         .slide-track {
-            animation: scroll 60s linear infinite;
+            /* Even faster animation for mobile phones (10x faster than 80s = 8s) */
+            animation: scroll 8s linear infinite; /* Drastically increased speed for testing */
             gap: 0;
         }
     }
@@ -228,9 +238,7 @@ $(document).ready(function() {
     });
 });
 </script>
-        <!-- Start Slider Area -->
-        <!-- Start Category Area -->
-<section class="htc__category__area pt--70 pb--100">
+        <section class="htc__category__area pt--70 pb--100">
     <div class="container">
         <div class="row">
             <div class="col-xs-12">
@@ -244,7 +252,6 @@ $(document).ready(function() {
             <div class="row">
                 <div class="product__list clearfix mt--30">
                     {% for sub_category in sub_categories %}
-                    <!-- Start Single Subcategory -->
                     <div class="col-md-4 col-lg-4 col-sm-6 col-xs-12 single__pro">
                         <div class="category">
                             <div class="ht__cat__thumb">
@@ -276,7 +283,6 @@ $(document).ready(function() {
                             </div>
                         </div>
                     </div>
-                    <!-- End Single Subcategory -->
                     {% endfor %}
                 </div>
             </div>
@@ -299,8 +305,7 @@ $(document).ready(function() {
         </div>
         <div class="row">
             <div class="product__wrap activation__style--1 owl-carousel owl-theme clearfix">
-                <!-- Start Single Product -->
-{% for p in products %}
+                {% for p in products %}
     {% with v=p.first_variant s=p.first_size d=p.first_discount %}
     {% if v and s %}
     <div class="col-md-3 col-lg-3 col-sm-6 col-xs-12">
@@ -457,16 +462,13 @@ $(document).ready(function() {
         });
     });
 </script>
-                <!-- End Single Product -->
-            </div>
+                </div>
         </div>
     </div>
 
-    <!-- CSRF token meta -->
     <meta name="csrf-token" content="{{ csrf_token }}">
 
-    <!-- Scripts -->
-<script>
+    <script>
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -548,17 +550,46 @@ $(document).ready(function() {
             })
             .done(function (data) {
                 if (data.success) {
-                    // ✅ Update cart count badge live
-                    const cartBadge = document.querySelector('.cart-count-badge');
-                    if (cartBadge) {
+                    const cartMenuLink = document.querySelector('.htc__shopping__cart .cart__menu');
+                    // We need to find the span that holds the count.
+                    // Since it has no class/ID in the template, we'll select the span that is
+                    // a direct child of the cart__menu link, excluding the icon.
+                    // This is a bit brittle, but works given the no-class constraint.
+                    let cartBadge = Array.from(cartMenuLink.children).find(child =>
+                        child.tagName === 'SPAN' && !child.classList.contains('icon')
+                    );
+
+                    if (data.total_items > 0) {
+                        if (!cartBadge) {
+                            // If badge doesn't exist, create it
+                            cartBadge = document.createElement('span');
+                            cartMenuLink.appendChild(cartBadge); // Append to the <a> tag
+
+                            // Apply all inline styles directly
+                            cartBadge.style.position = 'absolute';
+                            cartBadge.style.top = '-8px';
+                            cartBadge.style.right = '-10px';
+                            cartBadge.style.background = '#2bdac7';
+                            cartBadge.style.color = 'white';
+                            cartBadge.style.fontSize = '12px';
+                            cartBadge.style.fontWeight = 'bold';
+                            cartBadge.style.padding = '2px 6px';
+                            cartBadge.style.borderRadius = '50%';
+                            cartBadge.style.lineHeight = '1';
+                            cartBadge.style.display = 'flex'; // For centering
+                            cartBadge.style.alignItems = 'center'; // For centering
+                            cartBadge.style.justifyContent = 'center'; // For centering
+                            cartBadge.style.minWidth = '20px'; // To ensure circular shape
+                            cartBadge.style.height = '20px';   // To ensure circular shape
+                        }
                         cartBadge.textContent = data.total_items;
+                        cartBadge.style.display = 'flex'; // Ensure it's visible
                     } else {
-                        const icon = document.querySelector('.icon-handbag');
-                        if (icon) {
-                            const badge = document.createElement('span');
-                            badge.className = 'cart-count-badge';
-                            badge.textContent = data.total_items;
-                            icon.parentElement.appendChild(badge);
+                        // If total_items is 0, hide or remove the badge
+                        if (cartBadge) {
+                            cartBadge.textContent = ''; // Clear text
+                            cartBadge.style.display = 'none'; // Hide it
+                            // Or cartBadge.remove(); to remove it completely
                         }
                     }
 
@@ -569,7 +600,20 @@ $(document).ready(function() {
             })
             .fail(function (xhr, status, error) {
                 console.error("Request failed:", error);
-                alert("Error adding to cart. Server returned: " + xhr.responseText);
+                let errorMessage = "Error adding to cart. Please try again."; // Default error message
+
+                try {
+                    const responseJson = JSON.parse(xhr.responseText);
+                    if (responseJson && responseJson.error === "Insufficient stock") {
+                        errorMessage = "Out of stock";
+                    } else if (responseJson && responseJson.error) {
+                        errorMessage = responseJson.error; // Show other specific errors if present
+                    }
+                } catch (e) {
+                    // If responseText is not valid JSON, stick to default or generic message
+                    console.error("Could not parse error response:", e);
+                }
+                alert(errorMessage);
             })
             .always(function () {
                 cartProcessing = false;
@@ -596,7 +640,6 @@ $(document).ready(function() {
         <div class="row">
             <div class="ht__blog__wrap clearfix">
                 {% for blog in blogs %}
-                <!-- Start Single Blog -->
                 <div class="col-md-6 col-lg-6 col-sm-12 col-xs-12">
                     <div class="blog">
                         <div class="blog__thumb" style="height: 400px; overflow: hidden;">
@@ -621,7 +664,6 @@ $(document).ready(function() {
                         </div>
                     </div>
                 </div>
-                <!-- End Single Blog -->
                 {% empty %}
                 <div class="col-12 text-center">
                     <p>No blog posts available.</p>
@@ -632,45 +674,35 @@ $(document).ready(function() {
     </div>
 </section></div>
 
-        <!-- End Testimonial Area -->
 
-        <!-- Start Brand Area -->
-      <!--  <div class="htc__brand__area pb--70 bg__white">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="ht__brand__inner">
-                            <ul class="brand__list owl-carousel clearfix">
-                                <li><a href="#"><img src="{% static 'images/brand/1.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/2.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/3.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/4.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/5.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/5.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/1.png' %}" alt="brand images"></a></li>
-                                <li><a href="#"><img src="{% static 'images/brand/2.png' %}" alt="brand images"></a></li>
-                            </ul>
-                        </div>
+<div class="htc__brand__area pb--70 bg__white">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="ht__brand__inner">
+                    {% if brands %}
+                    <ul class="brand__list owl-carousel owl-theme clearfix">
+                        {% for brand in brands %}
+                        <li>
+                            <a href="#"> <img src="{{ brand.image.url }}" alt="{{ brand.name }} logo">
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+        </div>
                     </div>
                 </div>
             </div>
         </div>-->
-        <!-- End Brand Area -->
-        <!-- Start Banner Area -->
-
+        <br>
 <br>
-<br>
-        <!-- End Banner Area -->
-        <!-- End Banner Area -->
-
-
-
-
-{% endblock %}
+        {% endblock %}
 </body>
 </html>
-
-
-
-
-

@@ -1,74 +1,55 @@
 {% extends "custom_admin/base_site.html" %}
 
 {% block content %}
-<div class="container mt-4" style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-    <h2 class="mb-3" style="color: #343a40; text-align: center; font-weight: 600;">Edit Subcategory</h2>
-
-    <form method="POST" enctype="multipart/form-data" style="max-width: 500px; margin: 0 auto; border: 1px solid #dee2e6; padding: 25px; border-radius: 8px;">
-        {% csrf_token %}
-        <div style="margin-bottom: 15px;">
-            <label for="id_title" style="display: block; font-weight: bold; margin-bottom: 5px;">Title</label>
-            <div style="border: 1px solid #ced4da; border-radius: 4px; padding: 8px;">
-                {{ form.title }}
-            </div>
-        </div>
-
-        <div style="margin-bottom: 15px;">
-            <label for="id_main_category" style="display: block; font-weight: bold; margin-bottom: 5px;">Main Category</label>
-            <div style="/* Removed border and padding from this div */">
-                {{ form.main_category.as_widget }}
-            </div>
-        </div>
-
-        <div style="margin-bottom: 15px;">
-            <label for="id_price" style="display: block; font-weight: bold; margin-bottom: 5px;">Price</label>
-            <div style="border: 1px solid #ced4da; border-radius: 4px; padding: 8px;">
-                {{ form.price }}
-            </div>
-        </div>
-
-        <div style="margin-bottom: 15px;">
-            <label for="id_image" style="display: block; font-weight: bold; margin-bottom: 5px;">Image</label>
-            <div style="position: relative;">
-                <label style="display: inline-block; padding: 8px 16px; border: 1px solid #007bff; border-radius: 4px; background-color: #007bff; color: white; cursor: pointer; transition: background-color 0.2s ease;">
-                    Choose Image
-                    <input type="file" name="image" id="id_image" style="display: none;">
-                </label>
-                <div id="file-name" style="margin-top: 8px; color: #555; font-style: italic;">
-                    {% if form.instance.image %}
-                        Current: {{ form.instance.image.name }}
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
-            <button type="submit" class="btn btn-primary" style="background-color: #007bff; border-color: #007bff; font-weight: bold; padding: 10px 20px; border-radius: 5px;">
-                Save Changes
-            </button>
-            <a href="{% url 'custom_admin:subcategories' %}" class="btn btn-secondary" style="background-color: #6c757d; border-color: #6c757d; font-weight: bold; padding: 10px 20px; color: white; text-decoration: none; border-radius: 5px;">
-                Cancel
-            </a>
-        </div>
-    </form>
-</div>
-
-<script>
-    const fileInput = document.getElementById('id_image');
-    const fileNameDisplay = document.getElementById('file-name');
-
-    fileInput.addEventListener('change', function() {
-        if (this.files && this.files.length > 0) {
-            fileNameDisplay.textContent = this.files[0].name;
-        } else {
-            // If no new file is selected, revert to showing the current file name if it exists
-            const currentImageName = "{% if form.instance.image %}{{ form.instance.image.name }}{% endif %}";
-            fileNameDisplay.textContent = currentImageName ? "Current: " + currentImageName : "";
-        }
-    });
-</script>
-
 <style>
+    /* Styling for the red asterisk */
+    .form-group label.required::after {
+        content: " *";
+        color: red;
+        margin-left: 2px;
+    }
+
+    /* General input styling to ensure consistency */
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: .375rem .75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+    .form-control:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .25);
+    }
+
+    /* Custom file upload button styling */
+    .file-upload-label {
+        display: inline-block;
+        padding: 8px 16px;
+        border: 1px solid #007bff;
+        border-radius: 4px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .file-upload-label:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+    /* Ensures the Django-rendered file input is hidden but accessible */
+    input[type="file"] {
+        display: none;
+    }
+
     /* Styling for the dropdown menu */
     #id_main_category {
         width: 100%; /* Make it take full width of its container */
@@ -95,4 +76,62 @@
         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Light blue shadow on focus */
     }
 </style>
+
+<div class="container mt-4" style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+    <h2 class="mb-3" style="color: #343a40; text-align: center; font-weight: 600;">Add Subcategory</h2>
+
+    <form method="POST" enctype="multipart/form-data" style="max-width: 500px; margin: 0 auto; border: 1px solid #dee2e6; padding: 25px; border-radius: 8px;">
+        {% csrf_token %}
+
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="id_title" class="required" style="display: block; font-weight: bold; margin-bottom: 5px;">Title</label>
+            <div style="border: 1px solid #ced4da; border-radius: 4px; padding: 8px;">
+                {{ form.title }}
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="id_main_category" class="required" style="display: block; font-weight: bold; margin-bottom: 5px;">Main Category</label>
+            <div style="/* Removed border and padding from this div */">
+                {{ form.main_category.as_widget }}
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="id_price" style="display: block; font-weight: bold; margin-bottom: 5px;">Price</label>
+            <div style="border: 1px solid #ced4da; border-radius: 4px; padding: 8px;">
+                {{ form.price }}
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="id_image" class="required" style="display: block; font-weight: bold; margin-bottom: 5px;">Image</label>
+            <div style="position: relative;">
+                <label class="file-upload-label">
+                    Choose Image
+                    <input type="file" name="image" id="id_image" style="display: none;">
+                </label>
+                <div id="file-name" style="margin-top: 8px; color: #555; font-style: italic;"></div>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
+            <button type="submit" class="btn btn-success" style="background-color: #28a745; border-color: #28a745; font-weight: bold; padding: 10px 20px; border-radius: 5px;">
+                Add Subcategory
+            </button>
+            <a href="{% url 'custom_admin:subcategories' %}" class="btn btn-secondary" style="background-color: #6c757d; border-color: #6c757d; font-weight: bold; padding: 10px 20px; color: white; text-decoration: none; border-radius: 5px;">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const fileInput = document.getElementById('id_image');
+    const fileNameDisplay = document.getElementById('file-name');
+
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            fileNameDisplay.textContent = this.files[0].name;
+        } else {
+            fileNameDisplay.textContent = '';
+        }
+    });
+</script>
 {% endblock %}

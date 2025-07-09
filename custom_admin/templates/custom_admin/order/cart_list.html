@@ -110,8 +110,11 @@
                     <td style="border: 1px solid black;">{{ cart.updated|date:"Y-m-d H:i" }}</td>
                     <td style="border: 1px solid black;">
                         <div class="d-flex flex-wrap gap-1">
-                            <a href="{% url 'custom_admin:edit_cart' cart.pk %}" class="btn btn-sm btn-primary" style="background-color: #007bff; border-color: #007bff; font-weight: bold;">Edit</a>
-                            <a href="{% url 'custom_admin:delete_cart' cart.pk %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this cart?');" style="background-color: #dc3545; border-color: #dc3545; font-weight: bold;">Delete</a>
+                            <a href="{% url 'custom_admin:edit_cart' cart.pk %}" class="btn btn-sm btn-primary">Edit</a>
+                            <a href="{% url 'custom_admin:delete_cart' cart.pk %}" class="btn btn-sm btn-danger" onclick="...">Delete</a>
+                            <a href="{% url 'custom_admin:send_reminder_email' user_id=cart.user.id reminder_type='cart' %}" class="btn btn-sm btn-success">
+                                <i class="fas fa-envelope"></i> Send Reminder
+                            </a>
                         </div>
                     </td>
                 </tr>

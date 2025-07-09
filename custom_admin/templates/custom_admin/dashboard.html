@@ -3,6 +3,106 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<style>
+    /* Add this style block to dashboard.html or ensure these styles are in a linked custom.css */
+
+    /* Basic styling for form inputs */
+    .form-control-custom {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    .form-control-custom:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    }
+
+    /* Styles for the date input wrapper (from previous forms) */
+    .date-input-wrapper {
+        position: relative;
+        border: 1px solid #ced4da; /* Apply the border here */
+        border-radius: 6px;
+        background-color: #fff;
+        display: flex; /* Use flex to align input and icon */
+        align-items: center; /* Vertically align items */
+        overflow: hidden; /* Ensures border-radius clips children */
+    }
+
+    .date-input-wrapper:focus-within { /* Apply focus style to the wrapper */
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    }
+
+    .date-input-wrapper input[type="date"],
+    .date-input-wrapper input[type="datetime-local"] {
+        flex-grow: 1; /* Allow input to take available space */
+        border: none; /* Remove individual input border */
+        outline: none; /* Remove outline on focus */
+        padding: 10px 12px; /* Padding for the input text */
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: transparent; /* Transparent background to show wrapper's background */
+        box-sizing: border-box; /* Include padding in element's total width/height */
+        /* Remove default arrow in some browsers for date inputs if present */
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+     .date-input-wrapper input[type="date"]::-webkit-calendar-picker-indicator {
+        opacity: 0; /* Hide the default calendar icon */
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+
+    .date-input-wrapper .calendar-icon {
+        padding: 0 10px; /* Padding around the icon */
+        color: #6c757d; /* Icon color */
+        cursor: pointer; /* Indicate it's clickable */
+        font-size: 1.2rem; /* Size of the icon */
+        position: relative; /* To be clickable over the hidden default picker */
+        z-index: 1; /* Ensure it's above the hidden native picker */
+    }
+
+    /* Style for the Filter button */
+    .btn-filter-custom {
+        background-color: #e91e63; /* Pink color from your image */
+        border-color: #e91e63;
+        color: white;
+        font-weight: bold;
+        padding: 10px 30px; /* Adjust padding as needed */
+        border-radius: 5px;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .btn-filter-custom:hover {
+        background-color: #d81b60; /* Slightly darker pink on hover */
+        border-color: #d81b60;
+    }
+
+    /* FIX: Aligning the filter button vertically with inputs */
+    /* The `align-items-end` on the form row is crucial.
+       Then, you want to ensure the button itself is at the very bottom of its `col-auto`.
+       The `mt-auto` Bootstrap class is perfect for this.
+    */
+    .filter-button-col { /* New class for the button's column */
+        display: flex; /* Make it a flex container */
+        align-items: flex-end; /* Align its direct children to the bottom */
+        height: 100%; /* Ensure it takes full height of the row for alignment */
+    }
+
+</style>
+
     <div class="container-fluid py-2">
       <div class="row">
         <div class="ms-3">
@@ -11,25 +111,33 @@
             Check the sales, value and bounce rate by country.
           </p>
         </div>
-        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-</div>
-<div class="row">
-    <div class="col-12 mb-3">
-        <form method="get" class="row g-3">
-            <div class="col-auto">
-                <label for="start_date" class="form-label">Start Date</label>
-                {{ form.start_date }}
-            </div>
-            <div class="col-auto">
-                <label for="end_date" class="form-label">End Date</label>
-                {{ form.end_date }}
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-primary mt-4">Filter</button>
-            </div>
-        </form>
-    </div>
-</div>
+      </div> {# Close the first row here #}
+
+      <div class="row"> {# Start a new row for the filter form #}
+        <div class="col-12 mb-3">
+            <form method="get" class="row g-3 align-items-end"> {# Keep align-items-end on the form row #}
+                <div class="col-auto">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <div class="date-input-wrapper">
+                        {{ form.start_date }}
+                        <span class="calendar-icon"><i class="fas fa-calendar-alt"></i></span>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <div class="date-input-wrapper">
+                        {{ form.end_date }}
+                        <span class="calendar-icon"><i class="fas fa-calendar-alt"></i></span>
+                    </div>
+                </div>
+                {# Apply `filter-button-col` here to align the button correctly #}
+                <div class="col-auto filter-button-col">
+                    <button type="submit" class="btn btn-filter-custom">Filter</button>
+                </div>
+            </form>
+        </div>
+      </div> {# End row for the filter form #}
+
 <div class="row">
         <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
         <div class="card">

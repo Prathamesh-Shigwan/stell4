@@ -1,35 +1,105 @@
 {% extends "custom_admin/base_site.html" %}
 
 {% block content %}
+<style>
+    /* Styling for required asterisk */
+    .form-group label.required::after {
+        content: " *";
+        color: red;
+        margin-left: 2px;
+    }
+
+    /* Styling for invalid fields */
+    .form-control.is-invalid {
+        border-color: #dc3545 !important; /* Red border */
+    }
+
+    /* Styles for validation error messages */
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.875em;
+        margin-top: 0.25rem;
+    }
+    .invalid-feedback.d-block {
+        display: block !important;
+    }
+
+    /* General input styling to ensure consistency */
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: .375rem .75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+    .form-control:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .25);
+    }
+
+    /* Custom file upload button styling */
+    .file-upload-label {
+        display: inline-block;
+        padding: 8px 16px;
+        border: 1px solid #007bff;
+        border-radius: 4px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .file-upload-label:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+    /* Ensures the Django-rendered file input is hidden but accessible */
+    input[type="file"] {
+        display: none;
+    }
+</style>
+
 <div class="container mt-4" style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
     <h2 class="mb-3" style="color: #343a40; text-align: center; font-weight: 600;">Add Main Category</h2>
 
-    <form method="POST" enctype="multipart/form-data" style="max-width: 500px; margin: 0 auto; border: 1px solid #dee2e6; padding: 25px; border-radius: 8px;">
+    <form method="POST" enctype="multipart/form-data" id="mainCategoryForm" style="max-width: 500px; margin: 0 auto; border: 1px solid #dee2e6; padding: 25px; border-radius: 8px;">
         {% csrf_token %}
-        <div style="margin-bottom: 15px;">
-            <div style="margin-bottom: 15px;">
-                <label for="id_title" style="display: block; font-weight: bold; margin-bottom: 5px;">Title</label>
-                <div style="border: 1px solid #ced4da; border-radius: 4px; padding: 8px;">
-                    {{ form.title }}
-                </div>
+
+        <div class="form-group mb-3">
+            <label for="{{ form.title.id_for_label }}" class="required" style="display: block; font-weight: bold; margin-bottom: 5px;">Title</label>
+            <div style="border: 1px solid #ced4da; border-radius: 4px; padding: 8px;">
+                {{ form.title }}
             </div>
-            <div style="margin-bottom: 15px;">
-                <label for="id_price" style="display: block; font-weight: bold; margin-bottom: 5px;">Price</label>
-                <div style="border: 1px solid #ced4da; border-radius: 4px; padding: 8px;">
-                    {{ form.price }}
-                </div>
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label for="id_image" style="display: block; font-weight: bold; margin-bottom: 5px;">Image</label>
-                <div style="position: relative;">
-                    <label style="display: inline-block; padding: 8px 16px; border: 1px solid #007bff; border-radius: 4px; background-color: #007bff; color: white; cursor: pointer; transition: background-color 0.2s ease;">
-                        Choose Image
-                        <input type="file" name="image" id="id_image" style="display: none;">
-                    </label>
-                    <div id="file-name" style="margin-top: 8px; color: #555; font-style: italic;"></div>
-                </div>
-            </div>
+            {% if form.title.errors %}<div class="invalid-feedback d-block">{{ form.title.errors }}</div>{% endif %}
         </div>
+
+        <div class="form-group mb-3">
+            <label for="{{ form.price.id_for_label }}" class="required" style="display: block; font-weight: bold; margin-bottom: 5px;">Price</label>
+            <div style="border: 1px solid #ced4da; border-radius: 4px; padding: 8px;">
+                {{ form.price }}
+            </div>
+            {% if form.price.errors %}<div class="invalid-feedback d-block">{{ form.price.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="{{ form.image.id_for_label }}" class="required" style="display: block; font-weight: bold; margin-bottom: 5px;">Image</label>
+            <div style="position: relative;">
+                <label class="file-upload-label">
+                    Choose Image
+                    {{ form.image }} {# This renders the actual file input #}
+                </label>
+                <div id="file-name" style="margin-top: 8px; color: #555; font-style: italic;">No file chosen</div>
+            </div>
+            {% if form.image.errors %}<div class="invalid-feedback d-block">{{ form.image.errors }}</div>{% endif %}
+        </div>
+
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
             <button type="submit" class="btn btn-success" style="background-color: #28a745; border-color: #28a745; font-weight: bold; padding: 10px 20px; border-radius: 5px;">
                 Add Category
@@ -42,15 +112,88 @@
 </div>
 
 <script>
-    const fileInput = document.getElementById('id_image');
-    const fileNameDisplay = document.getElementById('file-name');
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('id_image');
+        const fileNameDisplay = document.getElementById('file-name');
+        const form = document.getElementById('mainCategoryForm');
 
-    fileInput.addEventListener('change', function() {
-        if (this.files && this.files.length > 0) {
-            fileNameDisplay.textContent = this.files[0].name;
-        } else {
-            fileNameDisplay.textContent = '';
+        // Function to mark a field as invalid (red border, error message)
+        function markInvalid(field, message = 'This field is required.') {
+            field.classList.add('is-invalid');
+            let errorDiv = field.closest('.form-group').querySelector('.invalid-feedback');
+            if (!errorDiv) { // Create error div if it doesn't exist
+                errorDiv = document.createElement('div');
+                errorDiv.classList.add('invalid-feedback');
+                field.after(errorDiv);
+            }
+            errorDiv.classList.add('d-block');
+            if (!errorDiv.textContent || errorDiv.textContent.trim() === '') { // Set generic message if no Django error
+                errorDiv.textContent = message;
+            }
         }
+
+        // Function to mark a field as valid (remove red border, hide error message)
+        function markValid(field) {
+            field.classList.remove('is-invalid');
+            const errorDiv = field.closest('.form-group').querySelector('.invalid-feedback');
+            if (errorDiv) {
+                errorDiv.classList.remove('d-block');
+                // Don't clear content, Django's server-side errors might be there
+            }
+        }
+
+        // Update file name display when a new file is selected
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                fileNameDisplay.textContent = this.files[0].name;
+            } else {
+                fileNameDisplay.textContent = 'No file chosen';
+            }
+            markValid(this); // Remove validation styling when file is chosen
+        });
+
+        // Client-side validation on form submission
+        form.addEventListener('submit', function(event) {
+            let isValid = true;
+
+            // List of required field IDs. Ensure these match your Django form's required fields.
+            const requiredFields = [
+                document.getElementById('id_title'),
+                document.getElementById('id_price'),
+                document.getElementById('id_image')
+            ];
+
+            requiredFields.forEach(function(field) {
+                if (!field) return; // Skip if element doesn't exist
+
+                if (field.type === 'file') {
+                    if (field.files.length === 0) {
+                        markInvalid(field, 'Please select an image.');
+                        isValid = false;
+                    } else {
+                        markValid(field);
+                    }
+                } else { // For text and number inputs
+                    if (field.value.trim() === '') {
+                        markInvalid(field);
+                        isValid = false;
+                    } else {
+                        markValid(field);
+                    }
+                }
+            });
+
+            if (!isValid) {
+                event.preventDefault(); // Stop form submission if validation fails
+            }
+        });
+
+        // Remove invalid styling when user starts typing/interacting
+        document.querySelectorAll('input.form-control').forEach(function(field) {
+            field.addEventListener('input', function() {
+                markValid(this);
+            });
+        });
     });
 </script>
 {% endblock %}

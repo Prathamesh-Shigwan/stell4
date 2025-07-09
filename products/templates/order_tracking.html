@@ -1,56 +1,137 @@
 <!DOCTYPE html>
-{% extends 'base.html' %}
+{% extends 'base.html' %} {# Extends your base template #}
 
-{% load static %}
+{% load static %} {# Loads static files (for images/icons) #}
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Home{% endblock %}</title>
+    <title>{% block title %}My Orders{% endblock %}</title> {# Dynamic page title #}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {# Your custom CSS for the order process bar #}
+    <style>
+        /* Order Process Bar Styles */
+        .order-process-bar {
+            margin: 100px 0;
+            text-align: center;
+        }
+        .order-process-bar .steps {
+            display: flex;
+            justify-content: center;
+            list-style-type: none;
+            padding: 10px;
+        }
+        .order-process-bar .step {
+            flex: 1;
+            position: relative;
+            padding: 10px 0;
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .order-process-bar .step::before,
+        .order-process-bar .step::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 3px;
+            width: 50%;
+            background: #ebebeb;
+            z-index: -1;
+        }
+        .order-process-bar .step:first-child::before { display: none; }
+        .order-process-bar .step:last-child::after { display: none; }
+        .order-process-bar .step.active { color: #3fd9b2; }
+        .order-process-bar .step.active::before,
+        .order-process-bar .step.active::after {
+            background: #3fd9b2;
+        }
+        /* Style for the tracking info if needed (optional) */
+        .order-tracking-info {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+        .order-tracking-info a {
+            color: #007bff; /* Standard link color */
+            text-decoration: underline;
+        }
+        .order-tracking-info a:hover {
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
 {% block content %}
 
 {% for order in orders %}
-<div>
+<div class="order-item-container"> {# Added a wrapper div for each order block if you want to style individual order sections #}
     <div class="order-process-bar">
         <div>
             <h3>
+                {# Link to individual order details page #}
                 <a href="{% url 'products:order_details' order.id %}"> <span>Order Details [ Order ID - {{ order.order_id }} ]</span></a>
                 <h3>Delivered By - [{{order.expected_delivery}}]</h3>
+
+                {# Conditional display for Tracking ID and URL #}
+                {% if order.tracking_id or order.tracking_url %}
+                    <p class="order-tracking-info"> {# Added a class for potential styling #}
+                        {% if order.tracking_id %}
+                            Tracking ID: {{ order.tracking_id }}
+                        {% endif %}
+                        {% if order.tracking_id and order.tracking_url %}
+                            |
+                        {% endif %}
+                        {% if order.tracking_url %}
+                            Tracking URL: <a href="{{ order.tracking_url }}" target="_blank">{{ order.tracking_url }}</a>
+                        {% endif %}
+                    </p>
+                {% endif %}
             </h3>
-            <br><br>
+            <br><br> {# Use CSS margin for spacing instead of br tags if possible for better control #}
         </div>
         <ul class="steps">
+            {# Step for Pending status #}
             <li class="step {% if order.status == 'pending' %}active{% endif %}" data-status="pending">
-                <img height="45px" src="{% static 'images/icons/wall-clock.png' %}">
+                <img height="45px" src="{% static 'images/icons/wall-clock.png' %}" alt="Pending">
                 <span>Pending</span>
             </li>
+            {# Step for Processing status #}
             <li class="step {% if order.status == 'processing' %}active{% endif %}" data-status="processing">
-                <img height="45px" src="{% static 'images/icons/work-process.png' %}">
+                <img height="45px" src="{% static 'images/icons/work-process.png' %}" alt="Processing">
                 <span>Processing</span>
             </li>
+            {# Step for Shipped status #}
             <li class="step {% if order.status == 'shipped' %}active{% endif %}" data-status="shipped">
-                <img height="45px" src="{% static 'images/icons/shipped.png' %}">
+                <img height="45px" src="{% static 'images/icons/shipped.png' %}" alt="Shipped">
                 <span>Shipped</span>
             </li>
+            {# Step for Delivered status #}
             <li class="step {% if order.status == 'delivered' %}active{% endif %}" data-status="delivered">
-                <img height="45px" src="{% static 'images/icons/delivered.png' %}">
+                <img height="45px" src="{% static 'images/icons/delivered.png' %}" alt="Delivered">
                 <span>Delivered</span>
             </li>
+            {# Step for final/completion/exception statuses #}
             <li class="step {% if order.status == 'cancelled' or order.status == 'returned' or order.status == 'replaced' or order.status == 'completed' %}active{% endif %}">
                 {% if order.status == 'cancelled' %}
-                    <img height="45px" src="{% static 'images/icons/cancelled.png' %}">
+                    <img height="45px" src="{% static 'images/icons/cancelled.png' %}" alt="Cancelled">
                     <span>Cancelled</span>
                 {% elif order.status == 'returned' %}
-                    <img height="45px" src="{% static 'images/icons/returned.png' %}">
+                    <img height="45px" src="{% static 'images/icons/returned.png' %}" alt="Returned">
                     <span>Returned</span>
                 {% elif order.status == 'replaced' %}
-                    <img height="45px" src="{% static 'images/icons/returned.png' %}">
+                    <img height="45px" src="{% static 'images/icons/returned.png' %}" alt="Replaced">
                     <span>Replaced</span>
                 {% elif order.status == 'completed' %}
-                    <img height="45px" src="{% static 'images/icons/box.png' %}">
+                    <img height="45px" src="{% static 'images/icons/box.png' %}" alt="Order Completed">
                     <span>Order Completed</span>
                 {% endif %}
             </li>
@@ -58,53 +139,6 @@
     </div>
 </div>
 {% endfor %}
-
-
-<style>
-/* Order Process Bar Styles */
-.order-process-bar {
-  margin: 100px 0;
-  text-align: center;
-}
-.order-process-bar .steps {
-  display: flex;
-  justify-content: center;
-  list-style-type: none;
-  padding: 10px;
-}
-.order-process-bar .step {
-  flex: 1;
-  position: relative;
-  padding: 10px 0;
-  font-family: 'Poppins', sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  color: #999;
-  text-transform: uppercase;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.order-process-bar .step::before,
-.order-process-bar .step::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 3px;
-  width: 50%;
-  background: #ebebeb;
-  z-index: -1;
-}
-.order-process-bar .step:first-child::before { display: none; }
-.order-process-bar .step:last-child::after { display: none; }
-.order-process-bar .step.active { color: #3fd9b2; }
-.order-process-bar .step.active::before,
-.order-process-bar .step.active::after {
-  background: #3fd9b2;
-}
-</style>
 
 {% endblock %}
 </body>

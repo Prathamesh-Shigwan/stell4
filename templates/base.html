@@ -243,24 +243,24 @@
                                         <a href="#"><i class="icon-magnifier icons"></i></a>
                                     </div>
                                     <div class="htc__shopping__cart">
-                                        <a class="cart__menu" href="{% url 'products:cart_view' %}" style="position: relative; display: inline-block;">
-                                            <i class="icon-handbag icons" style="font-size: 28px;"></i>
-                                            {% if item_count %}
-                                                <span style="
-                                                    position: absolute;
-                                                    top: -8px;
-                                                    right: -10px;
-                                                    background: #2bdac7;
-                                                    color: white;
-                                                    font-size: 12px;
-                                                    font-weight: bold;
-                                                    padding: 2px 6px;
-                                                    border-radius: 50%;
-                                                    line-height: 1;
-                                                ">{{ item_count }}</span>
-                                            {% endif %}
-                                        </a>
-                                    </div>
+    <a class="cart__menu" href="{% url 'products:cart_view' %}" style="position: relative; display: inline-block;">
+        <i class="icon-handbag icons" style="font-size: 28px;"></i>
+        {% if item_count %}
+            <span style="
+                position: absolute;
+                top: -8px;
+                right: -10px;
+                background: #2bdac7;
+                color: white;
+                font-size: 12px;
+                font-weight: bold;
+                padding: 2px 6px;
+                border-radius: 50%;
+                line-height: 1;
+            ">{{ item_count }}</span>
+        {% endif %}
+    </a>
+</div>
                                 </div>
                             </div>
                         </div>
@@ -401,141 +401,123 @@
         </script>
 
                 <footer id="htc__footer">
-            <!-- Start Footer Top Area -->
-            <div class="footer__top__area bg__cat--1">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="footer__top__wrap clearfix">
-                                <div class="row">
-                                    <div class="col-md-3 col-sm-6 col-xs-12">
-                                        <div class="footer__top">
-                                            <div class="ft__logo">
-                                                <a href="{% url 'home' %}">
-                                                    <img src="{% static 'images/logo/STELLAR_logo_white.svg' %}" alt="logo">
-                                                </a>
+    <div class="footer__top__area bg__cat--1">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="footer__top__wrap clearfix">
+                        <div class="row">
+                            <div class="col-md-3 col-sm-6 col-xs-12">
+                                <div class="footer__top">
+                                    <div class="ft__logo">
+                                        <a href="{% url 'home' %}">
+                                            <img src="{% static 'images/logo/STELLAR_logo_white.svg' %}" alt="logo" style="width: 50%;">
+                                        </a>
+                                    </div>
+                                    <div class="ft__address__wrap">
+                                        <div class="ft__address">
+                                            <div class="ft__title">
+                                                <h4><i class="icon-location-pin icons"></i>Our Adress</h4>
                                             </div>
-                                            <div class="ft__address__wrap">
-                                                <div class="ft__address">
-                                                    <div class="ft__title">
-                                                        <h4><i class="icon-location-pin icons"></i>Our Adress</h4>
-                                                    </div>
-                                                    <div class="ft__details">
-                                                        <p><b>Unit no 9, Ramjas Society , Farid nagar, PN road Bhandup west, Mumbai 400078, Maharashtra, India</b></p>
-                                                    </div>
-                                                </div>
-                                                <div class="ft__address">
-                                                    <div class="ft__title">
-                                                        <h4><i class="icon-call-out icons"></i>Our Phone</h4>
-                                                    </div>
-                                                    <div class="ft__details">
-                                                        <p>Call Us : <a href="tel:+918451031694">+91 84510 31694</a></p>
-                                                    </div>
-                                                </div>
-                                                <div class="ft__address">
-                                                    <div class="ft__title">
-                                                        <h4><i class="icon-envelope icons"></i>email for us</h4>
-                                                    </div>
-                                                    <div class="ft__details">
-                                                        <p>Stellarspvt@gmail.com</p>
-                                                    </div>
-                                                </div>
+                                            <div class="ft__details">
+                                                <p style="color: #FFFFFF;"><b>Unit no 9, Ramjas Society , Farid nagar, PN road Bhandup west, Mumbai 400078, Maharashtra, India</b></p>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-5 col-sm-6 col-xs-12 xmt-40">
-                                        <div class="google__map">
-                                            <div class="map-contacts">
-                                                <div id="googleMap"></div>
+                                        <div class="ft__address">
+                                            <div class="ft__title">
+                                                <h4><i class="icon-call-out icons"></i>Our Phone</h4>
+                                            </div>
+                                            <div class="ft__details">
+                                                <p style="color: #FFFFFF;">Call Us : <a href="tel:+918451031694" style="color: #FFFFFF;">+91 84510 31694</a></p>
+                                            </div>
+                                        </div>
+                                        <div class="ft__address">
+                                            <div class="ft__title">
+                                                <h4><i class="icon-envelope icons"></i>email for us</h4>
+                                            </div>
+                                            <div class="ft__details">
+                                                <p style="color: #FFFFFF;">Stellarspvt@gmail.com</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- End Footer Top Area -->
-            <!-- Start Footer Widget -->
-            <div class="footer__container bg__cat--1">
-                <div class="container">
-                    <div class="row">
-                        <!-- Start Single Footer Widget -->
-                        <div class="col-md-3 col-sm-6 col-xs-12">
-                            <div class="footer">
-                                <h2 class="title__line--2">company info</h2>
-                                <div class="ft__details">
-                                    <p>Stellars Online Pvt Ltd is a premier manufacturer and retailer specializing in high-quality bags for both ladies and gentlemen, including a diverse range of trolley bags. Established with a commitment to excellence, we aim to redefine the bag industry by offering stylish, functional, and durable products that cater to the modern consumer's needs.</p>
-                                    <div class="footer__btn">
-                                        <a href="{% url 'products:about' %}">read more</a>
+                            <div class="col-md-5 col-sm-6 col-xs-12 xmt-40">
+                                <div class="google__map">
+                                    <div class="map-contacts">
+                                        <div id="googleMap"></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <!-- End Single Footer Widget -->
-                        <!-- Start Single Footer Widget -->
-                        <div class="col-md-2 col-sm-6 col-xs-12 xmt-40">
-                            <div class="footer">
-                                <h2 class="title__line--2">information</h2>
-                                <div class="ft__inner">
-                                    <ul class="ft__list">
-                                        <li><a href="{% url 'products:about' %}">About us</a></li>
-                                        <li><a href="{% url 'products:delivery_info' %}">Delivery Information</a></li>
-                                        <li><a href="{% url 'products:privacy_policy' %}">Privacy & Policy</a></li>
-                                        <li><a href="{% url 'products:terms_condition' %}">Terms  & Condition</a></li>
-                                        <li><a href="{% url 'products:return_refund' %}">Return and Refund</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- End Single Footer Widget -->
-
-                        <!-- Start Single Footer Widget -->
-                        <div class="col-md-3 col-sm-6 col-xs-12 xmt-40 smt-40">
-                            <div class="footer">
-                                <h2 class="title__line--2">Our country</h2>
-                                <div class="ft__inner">
-                                    <span><b>INDIA</b></span>
-                                    <div class="ft__social__link">
-                                        <span>follow us</span>
-                                        <ul class="social__link">
-                                            <li><a href="https://twitter.com" target="_blank"><i class="icon-social-twitter icons"></i></a></li>
-
-                                            <li><a href="https://www.instagram.com" target="_blank"><i class="icon-social-instagram icons"></i></a></li>
-
-                                            <li><a href="https://www.facebook.com" target="_blank"><i class="icon-social-facebook icons"></i></a></li>
-
-                                            <li><a href="https://plus.google.com/" target="_blank"><i class="icon-social-google icons"></i></a></li>
-
-                                            <li><a href="#" target="_blank"><i class="icon-social-linkedin icons"></i></a></li>
-
-                                            <li><a href="#" target="_blank"><i class="icon-social-pinterest icons"></i></a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- End Single Footer Widget -->
                     </div>
                 </div>
             </div>
-            <!-- End Footer Widget -->
-            <!-- Start Copyright Area -->
-            <div class="htc__copyright bg__white">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-xs-12">
-                            <div class="copyright__inner">
-                                <p>Copyright© <a href="#" target="blank">Stellars</a> 2025. All right reserved.</p>
-                                <a href="#"><img src="{% static 'images/others/shape/paypol.png' %}" alt="payment images"></a>
+        </div>
+    </div>
+    <div class="footer__container bg__cat--1">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 col-sm-6 col-xs-12">
+                    <div class="footer">
+                        <h2 class="title__line--2">company info</h2>
+                        <div class="ft__details">
+                            <p style="color: #FFFFFF;">Stellars Online Pvt Ltd is a premier manufacturer and retailer specializing in high-quality bags for both ladies and gentlemen, including a diverse range of trolley bags. Established with a commitment to excellence, we aim to redefine the bag industry by offering stylish, functional, and durable products that cater to the modern consumer's needs.</p>
+                            <div class="footer__btn">
+                                <a href="{% url 'products:about' %}">read more</a>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="col-md-2 col-sm-6 col-xs-12 xmt-40">
+                    <div class="footer">
+                        <h2 class="title__line--2">information</h2>
+                        <div class="ft__inner">
+                            <ul class="ft__list">
+                                <li><a href="{% url 'products:about' %}" style="color: #FFFFFF;">About us</a></li>
+                                <li><a href="{% url 'products:delivery_info' %}" style="color: #FFFFFF;">Delivery Information</a></li>
+                                <li><a href="{% url 'products:privacy_policy' %}" style="color: #FFFFFF;">Privacy & Policy</a></li>
+                                <li><a href="{% url 'products:terms_condition' %}" style="color: #FFFFFF;">Terms  & Condition</a></li>
+                                <li><a href="{% url 'products:return_refund' %}" style="color: #FFFFFF;">Return and Refund</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 col-xs-12 xmt-40 smt-40">
+                    <div class="footer">
+                        <h2 class="title__line--2">Our country</h2>
+                        <div class="ft__inner">
+                            <span style="color: #FFFFFF;"><b>INDIA</b></span>
+                            <div class="ft__social__link">
+                                <span>follow us</span>
+                                <ul class="social__link">
+                                    <li><a href="https://twitter.com" target="_blank"><i class="icon-social-twitter icons"></i></a></li>
+                                    <li><a href="https://www.instagram.com" target="_blank"><i class="icon-social-instagram icons"></i></a></li>
+                                    <li><a href="https://www.facebook.com" target="_blank"><i class="icon-social-facebook icons"></i></a></li>
+                                    <li><a href="https://plus.google.com/" target="_blank"><i class="icon-social-google icons"></i></a></li>
+                                    <li><a href="#" target="_blank"><i class="icon-social-linkedin icons"></i></a></li>
+                                    <li><a href="#" target="_blank"><i class="icon-social-pinterest icons"></i></a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+        </div>
+    </div>
+    <div class="htc__copyright bg__white">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="copyright__inner">
+                        <p>Copyright© <a href="#" target="blank">Stellars</a> 2025. All right reserved.</p>
+                        <a href="#"><img src="{% static 'images/others/shape/paypol.png' %}" alt="payment images"></a>
+                    </div>
+                </div>
             </div>
-            <!-- End Copyright Area -->
-        </footer>
+        </div>
+    </div>
+    </footer>
         <!-- End Footer Style -->
     </div>
     <!-- Body main wrapper end -->

@@ -1,33 +1,110 @@
 {% extends "custom_admin/base_site.html" %}
 
 {% block content %}
+<style>
+    /* Styling for the red asterisk */
+    .form-group label.required::after {
+        content: " *";
+        color: red;
+        margin-left: 2px;
+    }
+
+    /* General input styling to ensure consistency */
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: .375rem .75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+    .form-control:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .25);
+    }
+
+    /* Custom file upload button styling */
+    .file-upload-label {
+        display: inline-block;
+        padding: 8px 16px;
+        border: 1px solid #007bff;
+        border-radius: 4px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .file-upload-label:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+    /* Ensures the Django-rendered file input is hidden but accessible */
+    input[type="file"] {
+        display: none;
+    }
+
+    /* Styling for the dropdown menu */
+    #id_main_category {
+        width: 100%; /* Make it take full width of its container */
+        padding: 10px; /* Add some padding inside */
+        border: 1px solid #ced4da; /* Consistent border with other inputs */
+        border-radius: 4px; /* Rounded corners */
+        background-color: #fff; /* White background */
+        font-size: 1rem; /* Standard font size */
+        line-height: 1.5; /* Line height for better spacing */
+        color: #495057; /* Text color */
+        appearance: none; /* Remove default browser styling for select */
+        -webkit-appearance: none; /* For Webkit browsers */
+        -moz-appearance: none; /* For Mozilla browsers */
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); /* Custom arrow */
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; /* Smooth transitions */
+    }
+
+    #id_main_category:focus {
+        border-color: #80bdff; /* Blue border on focus */
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Light blue shadow on focus */
+    }
+</style>
+
 <div class="container mt-4" style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
     <h2 class="mb-3" style="color: #343a40; text-align: center; font-weight: 600;">Add Subcategory</h2>
 
     <form method="POST" enctype="multipart/form-data" style="max-width: 500px; margin: 0 auto; border: 1px solid #dee2e6; padding: 25px; border-radius: 8px;">
         {% csrf_token %}
-        <div style="margin-bottom: 15px;">
-            <label for="id_title" style="display: block; font-weight: bold; margin-bottom: 5px;">Title</label>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="id_title" class="required" style="display: block; font-weight: bold; margin-bottom: 5px;">Title</label>
             <div style="border: 1px solid #ced4da; border-radius: 4px; padding: 8px;">
                 {{ form.title }}
             </div>
         </div>
-        <div style="margin-bottom: 15px;">
-            <label for="id_main_category" style="display: block; font-weight: bold; margin-bottom: 5px;">Main Category</label>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="id_main_category" class="required" style="display: block; font-weight: bold; margin-bottom: 5px;">Main Category</label>
             <div style="/* Removed border and padding from this div */">
                 {{ form.main_category.as_widget }}
             </div>
         </div>
-        <div style="margin-bottom: 15px;">
+        <div class="form-group" style="margin-bottom: 15px;">
             <label for="id_price" style="display: block; font-weight: bold; margin-bottom: 5px;">Price</label>
             <div style="border: 1px solid #ced4da; border-radius: 4px; padding: 8px;">
                 {{ form.price }}
             </div>
         </div>
-        <div style="margin-bottom: 15px;">
-            <label for="id_image" style="display: block; font-weight: bold; margin-bottom: 5px;">Image</label>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="id_image" class="required" style="display: block; font-weight: bold; margin-bottom: 5px;">Image</label>
             <div style="position: relative;">
-                <label style="display: inline-block; padding: 8px 16px; border: 1px solid #007bff; border-radius: 4px; background-color: #007bff; color: white; cursor: pointer; transition: background-color 0.2s ease;">
+                <label class="file-upload-label">
                     Choose Image
                     <input type="file" name="image" id="id_image" style="display: none;">
                 </label>
@@ -57,32 +134,4 @@
         }
     });
 </script>
-
-<style>
-    /* Styling for the dropdown menu */
-    #id_main_category {
-        width: 100%; /* Make it take full width of its container */
-        padding: 10px; /* Add some padding inside */
-        border: 1px solid #ced4da; /* Consistent border with other inputs */
-        border-radius: 4px; /* Rounded corners */
-        background-color: #fff; /* White background */
-        font-size: 1rem; /* Standard font size */
-        line-height: 1.5; /* Line height for better spacing */
-        color: #495057; /* Text color */
-        appearance: none; /* Remove default browser styling for select */
-        -webkit-appearance: none; /* For Webkit browsers */
-        -moz-appearance: none; /* For Mozilla browsers */
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); /* Custom arrow */
-        background-repeat: no-repeat;
-        background-position: right 0.75rem center;
-        background-size: 16px 12px;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; /* Smooth transitions */
-    }
-
-    #id_main_category:focus {
-        border-color: #80bdff; /* Blue border on focus */
-        outline: 0;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Light blue shadow on focus */
-    }
-</style>
 {% endblock %}

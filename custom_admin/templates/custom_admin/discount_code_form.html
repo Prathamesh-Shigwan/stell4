@@ -2,48 +2,146 @@
 
 {% block content %}
 <style>
-    .styled-input input,
-    .styled-input textarea,
-    .styled-input select {
+    /* General input styling */
+    .form-control-custom {
         width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ccc;
+        padding: 10px 12px; /* Increased padding slightly */
+        border: 1px solid #ced4da; /* Standard Bootstrap border color */
         border-radius: 6px;
-        font-size: 14px;
+        font-size: 1rem; /* Standard font size */
+        line-height: 1.5; /* Standard line height */
+        color: #495057; /* Text color */
+        background-color: #fff; /* White background */
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    .form-control-custom:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
     }
 
-    .styled-input {
-        margin-bottom: 20px;
+    /* Apply to specific input types as needed (Django renders these) */
+    .styled-field input[type="text"],
+    .styled-field input[type="number"],
+    .styled-field input[type="email"],
+    .styled-field textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     }
 
-    .custom-checkbox {
+    /* SPECIFICALLY TARGET DATE INPUTS */
+    .styled-field input[type="date"],
+    .styled-field input[type="datetime-local"] {
+        width: 100%;
+        padding: 10px 12px;
+        border: none; /* Remove default input border, it will be on the wrapper */
+        border-radius: 6px; /* Still keep the internal input rounded */
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        box-sizing: border-box; /* Include padding/border in element's total width/height */
+        padding-right: 40px; /* Make space for the icon */
+    }
+
+    .styled-field input[type="text"]:focus,
+    .styled-field input[type="number"]:focus,
+    .styled-field input[type="email"]:focus,
+    .styled-field input[type="date"]:focus,
+    .styled-field input[type="datetime-local"]:focus,
+    .styled-field select:focus, /* ADDED select:focus HERE */
+    .styled-field textarea:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    }
+
+    .styled-field {
+        margin-bottom: 15px; /* Consistent spacing between fields */
+    }
+
+    .styled-field label {
+        display: block; /* Ensures label is above input */
+        font-weight: bold;
+        margin-bottom: 8px; /* Space between label and input */
+        color: #343a40; /* Darker color for labels */
+    }
+
+    /* --- Styles for the date/datetime input wrapper --- */
+    .date-input-wrapper {
+        position: relative;
+        border: 1px solid #ced4da; /* Apply the border here */
+        border-radius: 6px;
+        background-color: #fff;
+        display: flex; /* Use flex to align input and icon */
+        align-items: center; /* Vertically align items */
+    }
+
+    .date-input-wrapper:focus-within { /* Apply focus style to the wrapper */
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    }
+
+    .date-input-wrapper input {
+        flex-grow: 1; /* Allow input to take available space */
+        border: none; /* Remove individual input border */
+        outline: none; /* Remove outline on focus */
+        padding-right: 10px; /* Adjust padding if needed, given icon */
+    }
+
+    .date-input-wrapper .calendar-icon {
+        padding: 0 10px; /* Padding around the icon */
+        color: #6c757d; /* Icon color */
+        cursor: pointer; /* Indicate it's clickable */
+        font-size: 1.2rem; /* Size of the icon */
+    }
+    /* ------------------------------------------------ */
+
+
+    /* Custom Checkbox Styling */
+    .custom-checkbox-container {
         display: flex;
         align-items: center;
         gap: 10px;
         padding: 12px 16px;
-        border: 1px solid #ccc;
-        border-radius: 10px;
+        border: 1px solid #dee2e6; /* Lighter border */
+        border-radius: 8px; /* Slightly more rounded */
         background-color: #fff;
-        margin-bottom: 15px;
+        margin-bottom: 15px; /* Consistent spacing */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
     }
 
-    .custom-checkbox input[type="checkbox"] {
+    .custom-checkbox-container input[type="checkbox"] {
         appearance: none;
         -webkit-appearance: none;
-        width: 20px;
-        height: 20px;
+        width: 22px; /* Slightly larger checkbox */
+        height: 22px;
         border: 2px solid #007bff;
-        border-radius: 6px;
-        background-color: #007bff;
+        border-radius: 5px; /* Slightly less rounded for a modern look */
+        background-color: #fff; /* White background by default */
         position: relative;
         cursor: pointer;
+        transition: all 0.2s ease-in-out;
     }
 
-    .custom-checkbox input[type="checkbox"]:checked::before {
+    .custom-checkbox-container input[type="checkbox"]:checked {
+        background-color: #007bff; /* Blue when checked */
+        border-color: #007bff;
+    }
+
+    .custom-checkbox-container input[type="checkbox"]:checked::before {
         content: "";
         position: absolute;
-        top: 3px;
-        left: 6px;
+        top: 4px; /* Adjust checkmark position */
+        left: 7px; /* Adjust checkmark position */
         width: 5px;
         height: 10px;
         border: solid #fff;
@@ -51,47 +149,149 @@
         transform: rotate(45deg);
     }
 
-    .custom-checkbox label {
+    .custom-checkbox-container label {
         margin: 0;
         font-weight: 500;
-        color: #555;
+        color: #495057; /* Darker label color */
+        cursor: pointer; /* Indicate clickable label */
     }
+
+    /* Styles for Django's rendered select and textarea if applicable */
+    .styled-field select { /* General styling for all selects within styled-field */
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        /* Remove default arrow in some browsers for custom arrow if desired */
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+    }
+
+    /* Specifically target multi-select dropdowns for height */
+    select#id_applicable_categories,
+    select#id_applicable_products,
+    select#id_allowed_users,
+    select#id_used_by { /* Added used_by as it's likely a select multiple */
+        height: 150px; /* Adjust height for multi-select dropdowns */
+        min-height: 100px; /* Ensure a minimum height */
+    }
+
+    /* Style for selected options in a multi-select */
+    select[multiple] option:checked {
+        background-color: #007bff; /* Blue background for selected items */
+        color: white; /* White text for selected items */
+    }
+    select[multiple] option {
+        padding: 8px 12px; /* Padding for individual options */
+    }
+
 </style>
 
-<div class="container mt-4" style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-    <h2 class="mb-3" style="color: #343a40; text-align: center; font-weight: 600;">{{ title }}</h2>
-    <form method="POST" style="max-width: 800px; margin: 0 auto;">
+<div class="container mt-4" style="background-color: #f8f9fa; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+    <h2 class="mb-4" style="color: #343a40; text-align: center; font-weight: 600;">{{ title }} Coupon</h2>
+    <form method="POST" style="max-width: 900px; margin: 0 auto; border: 1px solid #dee2e6; padding: 30px; border-radius: 8px;">
         {% csrf_token %}
 
-        <div class="border p-3 rounded mb-3 styled-input"><label>Code</label>{{ form.code }}</div>
-        <div class="border p-3 rounded mb-3 styled-input"><label>Description</label>{{ form.description }}</div>
-        <div class="border p-3 rounded mb-3 styled-input"><label>Discount Amount</label>{{ form.discount_amount }}</div>
-        <div class="border p-3 rounded mb-3 styled-input"><label>Discount Percentage</label>{{ form.discount_percentage }}</div>
-        <div class="border p-3 rounded mb-3 styled-input"><label>Valid From</label>{{ form.valid_from }}</div>
-        <div class="border p-3 rounded mb-3 styled-input"><label>Valid To</label>{{ form.valid_to }}</div>
+        <div class="row">
+            {# Left Column #}
+            <div class="col-md-6">
+                <div class="styled-field">
+                    <label for="{{ form.code.id_for_label }}">Code</label>
+                    {{ form.code }}
+                </div>
+                <div class="styled-field">
+                    <label for="{{ form.discount_percentage.id_for_label }}">Discount Percentage</label>
+                    {{ form.discount_percentage }}
+                </div>
+                <div class="styled-field">
+                    <label for="{{ form.min_spend.id_for_label }}">Min Spend</label>
+                    {{ form.min_spend }}
+                </div>
+                <div class="styled-field">
+                    <label for="{{ form.min_quantity.id_for_label }}">Min Quantity</label>
+                    {{ form.min_quantity }}
+                </div>
+                <div class="styled-field">
+                    <label for="{{ form.applicable_categories.id_for_label }}">Applicable Categories</label>
+                    {{ form.applicable_categories }}
+                </div>
+                 <div class="styled-field">
+                    <label for="{{ form.allowed_users.id_for_label }}">Allowed Users</label>
+                    {{ form.allowed_users }}
+                </div>
+                <div class="styled-field">
+                    <label for="{{ form.description.id_for_label }}">Description</label>
+                    {{ form.description }}
+                </div>
+            </div>
 
-        <div class="custom-checkbox">{{ form.active }}<label for="{{ form.active.id_for_label }}">Active</label></div>
-        <div class="custom-checkbox">{{ form.auto_apply }}<label for="{{ form.auto_apply.id_for_label }}">Auto Apply</label></div>
-        <div class="custom-checkbox">{{ form.is_stackable }}<label for="{{ form.is_stackable.id_for_label }}">Is Stackable</label></div>
+            {# Right Column #}
+            <div class="col-md-6">
+                <div class="styled-field">
+                    <label for="{{ form.discount_amount.id_for_label }}">Discount Amount</label>
+                    {{ form.discount_amount }}
+                </div>
 
-        <div class="border p-3 rounded mb-3 styled-input"><label>Min Spend</label>{{ form.min_spend }}</div>
-        <div class="border p-3 rounded mb-3 styled-input"><label>Min Quantity</label>{{ form.min_quantity }}</div>
-        <div class="border p-3 rounded mb-3 styled-input"><label>Usage Limit</label>{{ form.usage_limit }}</div>
-        <div class="border p-3 rounded mb-3 styled-input"><label>Per User Limit</label>{{ form.per_user_limit }}</div>
+                {# Valid From Field - With Wrapper for Border and Icon #}
+                <div class="styled-field">
+                    <label for="{{ form.valid_from.id_for_label }}">Valid From</label>
+                    <div class="date-input-wrapper">
+                        {{ form.valid_from }}
+                        <span class="calendar-icon"><i class="fas fa-calendar-alt"></i></span> {# Font Awesome calendar icon #}
+                    </div>
+                </div>
 
-        <div class="border p-3 rounded mb-3 styled-input"><label>Applicable Products</label>{{ form.applicable_products }}</div>
-        <div class="border p-3 rounded mb-3 styled-input"><label>Applicable Categories</label>{{ form.applicable_categories }}</div>
-        <div class="border p-3 rounded mb-3 styled-input"><label>Allowed Users</label>{{ form.allowed_users }}</div>
+                {# Valid To Field - With Wrapper for Border and Icon #}
+                <div class="styled-field">
+                    <label for="{{ form.valid_to.id_for_label }}">Valid To</label>
+                    <div class="date-input-wrapper">
+                        {{ form.valid_to }}
+                        <span class="calendar-icon"><i class="fas fa-calendar-alt"></i></span> {# Font Awesome calendar icon #}
+                    </div>
+                </div>
 
-        <div class="border p-3 rounded mb-3 styled-input">
-            <label>Already Used By (View Only)</label>
-            {{ form.used_by }}
+                <div class="styled-field">
+                    <label for="{{ form.usage_limit.id_for_label }}">Usage Limit</label>
+                    {{ form.usage_limit }}
+                </div>
+                <div class="styled-field">
+                    <label for="{{ form.per_user_limit.id_for_label }}">Per User Limit</label>
+                    {{ form.per_user_limit }}
+                </div>
+                <div class="styled-field">
+                    <label for="{{ form.used_by.id_for_label }}">Already Used By (View Only)</label>
+                    {{ form.used_by }}
+                </div>
+
+
+                {# Checkboxes #}
+                <div class="custom-checkbox-container">
+                    {{ form.active }}<label for="{{ form.active.id_for_label }}">Active</label>
+                </div>
+                <div class="custom-checkbox-container">
+                    {{ form.auto_apply }}<label for="{{ form.auto_apply.id_for_label }}">Auto Apply</label>
+                </div>
+                <div class="custom-checkbox-container">
+                    {{ form.is_stackable }}<label for="{{ form.is_stackable.id_for_label }}">Is Stackable</label>
+                </div>
+            </div>
         </div>
 
-        <div class="d-flex justify-content-between">
-            <button type="submit" class="btn btn-success">Save Coupon</button>
-            <a href="{% url 'custom_admin:coupon_list' %}" class="btn btn-secondary">Cancel</a>
+        <div class="d-flex justify-content-between mt-4">
+            <button type="submit" class="btn btn-success fw-bold" style="background-color: #28a745; border-color: #28a745;">Save Coupon</button>
+            <a href="{% url 'custom_admin:coupon_list' %}" class="btn btn-secondary fw-bold" style="background-color: #6c757d; border-color: #6c757d; color: white;">Cancel</a>
         </div>
     </form>
 </div>
+
 {% endblock %}

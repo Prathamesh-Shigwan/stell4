@@ -81,11 +81,14 @@ def verify_signup_otp(request):
 
 
 def login_view(request):
-    if request.user.is_authenticated:
+    """if request.user.is_authenticated:
         messages.warning(request, f"You are already logged in as {request.user}.")
-        return redirect('products:home')
+        return redirect('products:home')"""
 
     if request.method == 'POST':
+        if request.user.is_authenticated:
+            messages.warning(request, f"You are already logged in as {request.user}.")
+            return redirect('products:home')
         email = request.POST.get('email')
         password = request.POST.get('password')
         user = authenticate(email=email, password=password)
